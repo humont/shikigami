@@ -9,12 +9,14 @@ Fuda is a task management system designed for AI coding agents to work in parall
 shiki ready --json --limit 1
 
 # 2. Claim it (replace sk-xxxx with actual ID)
-shiki update sk-xxxx --status in_progress --json
+shiki start sk-xxxx --json
 
 # 3. Do the work...
 
 # 4. Mark complete (or failed)
-shiki update sk-xxxx --status done --json
+shiki finish sk-xxxx --json
+# or if it failed:
+shiki fail sk-xxxx --json
 
 # 5. Check for next task
 shiki ready --json --limit 1
@@ -68,10 +70,14 @@ Returns tasks that:
 ### 3. Claim a Task
 When an agent picks up a task, update its status to \`in_progress\`:
 \`\`\`bash
-shiki update sk-a1b2c3 --status in_progress --json
+# Quick shortcut
+shiki start sk-a1b2c3 --json
 
-# Optionally identify yourself
-shiki update sk-a1b2c3 --status in_progress --assigned-spirit-id "claude-agent-1" --json
+# Or identify yourself
+shiki start sk-a1b2c3 --assigned-spirit-id "claude-agent-1" --json
+
+# Long form (still works)
+shiki update sk-a1b2c3 --status in_progress --json
 \`\`\`
 
 ### 4. Work on the Task
@@ -84,12 +90,12 @@ The agent should:
 ### 5. Complete or Fail the Task
 On success:
 \`\`\`bash
-shiki update sk-a1b2c3 --status done --json
+shiki finish sk-a1b2c3 --json
 \`\`\`
 
 On failure, mark it failed. The task can be retried later by another agent:
 \`\`\`bash
-shiki update sk-a1b2c3 --status failed --json
+shiki fail sk-a1b2c3 --json
 \`\`\`
 Note: To record failure details, update the fuda description or add a comment in your commit.
 
@@ -256,7 +262,7 @@ export function getStructuredContent(): AgentGuideStructured {
         step: 3,
         title: "Claim a Task",
         description: "Update task status to in_progress",
-        command: "shiki update <id> --status in_progress --json",
+        command: "shiki start <id> --json",
       },
       {
         step: 4,
@@ -268,7 +274,7 @@ export function getStructuredContent(): AgentGuideStructured {
         step: 5,
         title: "Complete or Fail the Task",
         description: "Update status to done or failed",
-        command: "shiki update <id> --status done --json",
+        command: "shiki finish <id> --json",
       },
       {
         step: 6,
@@ -317,6 +323,21 @@ export function getStructuredContent(): AgentGuideStructured {
           description: "Update a fuda's status or assignment",
           example:
             "shiki update sk-a1b2c3 --status in_progress --assigned-spirit-id agent-1 --json",
+        },
+        {
+          name: "shiki start",
+          description: "Start working on a fuda",
+          example: "shiki start sk-a1b2c3 [--assigned-spirit-id <id>] --json",
+        },
+        {
+          name: "shiki finish",
+          description: "Mark a fuda as finished",
+          example: "shiki finish sk-a1b2c3 --json",
+        },
+        {
+          name: "shiki fail",
+          description: "Mark a fuda as failed",
+          example: "shiki fail sk-a1b2c3 --json",
         },
         {
           name: "shiki deps tree",
