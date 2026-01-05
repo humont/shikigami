@@ -11,6 +11,7 @@ import { runImport } from "./commands/import";
 import { runList } from "./commands/list";
 import { runUpdate } from "./commands/update";
 import { runLog } from "./commands/log";
+import { runAgentGuide } from "./commands/agent-guide";
 import { output, outputError } from "../utils/output";
 
 const program = new Command();
@@ -319,5 +320,25 @@ function formatAuditEntry(entry: any): string {
   }
   return `  ${details}`;
 }
+
+// Agent guide command
+program
+  .command("agent-guide")
+  .description("Output workflow instructions for AI agents")
+  .action(async () => {
+    const isJson = program.opts().json;
+    const result = await runAgentGuide({ json: isJson });
+
+    if (result.success) {
+      if (isJson) {
+        output(result.structured, true);
+      } else {
+        console.log(result.content);
+      }
+    } else {
+      outputError(result.error!, isJson);
+      process.exit(1);
+    }
+  });
 
 program.parse();
