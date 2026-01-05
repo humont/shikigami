@@ -160,6 +160,16 @@ export function getAllFuda(db: Database, limit?: number): Fuda[] {
   return rows.map(rowToFuda);
 }
 
+export function getActiveFuda(db: Database, limit?: number): Fuda[] {
+  const limitClause = limit ? ` LIMIT ${limit}` : "";
+  const rows = db
+    .query(
+      `SELECT * FROM fuda WHERE deleted_at IS NULL AND status NOT IN ('done', 'failed') ORDER BY priority DESC, created_at ASC${limitClause}`
+    )
+    .all() as FudaRow[];
+  return rows.map(rowToFuda);
+}
+
 export function getFudaByStatus(db: Database, status: FudaStatus): Fuda[] {
   const rows = db
     .query("SELECT * FROM fuda WHERE status = ? AND deleted_at IS NULL ORDER BY priority DESC, created_at ASC")

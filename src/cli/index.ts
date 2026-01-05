@@ -186,13 +186,15 @@ program
 // List command
 program
   .command("list")
-  .description("List all fuda")
+  .description("List fuda (excludes done/failed by default)")
   .option("-s, --status <status>", "Filter by status")
+  .option("-a, --all", "Include done and failed fuda")
   .option("-l, --limit <number>", "Limit results")
   .action(async (options) => {
     const isJson = program.opts().json;
     const result = await runList({
       status: options.status,
+      all: options.all,
       limit: options.limit ? parseInt(options.limit, 10) : undefined,
     });
 
@@ -316,7 +318,7 @@ function formatFudaDetails(fuda: any): string {
 
 function formatFudaSummary(fuda: any): string {
   const id = fuda.displayId ? `${fuda.id} (${fuda.displayId})` : fuda.id;
-  return `  ${id} [p${fuda.priority}] ${fuda.title}`;
+  return `  ${id} [${fuda.status}|p${fuda.priority}] ${fuda.title}`;
 }
 
 function formatStatus(status: any): string {

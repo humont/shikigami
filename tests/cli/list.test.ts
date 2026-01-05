@@ -31,13 +31,13 @@ describe("list command", () => {
       expect(result.fudas).toEqual([]);
     });
 
-    test("returns all fuda regardless of status", async () => {
+    test("excludes done fuda by default", async () => {
       const fuda1 = createFuda(db, {
-        title: "First task",
+        title: "Pending task",
         description: "First description",
       });
       const fuda2 = createFuda(db, {
-        title: "Second task",
+        title: "Done task",
         description: "Second description",
       });
       updateFudaStatus(db, fuda2.id, FudaStatus.DONE);
@@ -45,9 +45,61 @@ describe("list command", () => {
       const result = await runList({ projectRoot: testDir });
 
       expect(result.success).toBe(true);
-      expect(result.fudas).toHaveLength(2);
-      expect(result.fudas!.map((f) => f.title)).toContain("First task");
-      expect(result.fudas!.map((f) => f.title)).toContain("Second task");
+      expect(result.fudas).toHaveLength(1);
+      expect(result.fudas![0].title).toBe("Pending task");
+    });
+
+    test("excludes failed fuda by default", async () => {
+      const fuda1 = createFuda(db, {
+        title: "Pending task",
+        description: "First description",
+      });
+      const fuda2 = createFuda(db, {
+        title: "Failed task",
+        description: "Second description",
+      });
+      updateFudaStatus(db, fuda2.id, FudaStatus.FAILED);
+
+      const result = await runList({ projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fudas).toHaveLength(1);
+      expect(result.fudas![0].title).toBe("Pending task");
+    });
+
+    test("includes all active statuses by default", async () => {
+      createFuda(db, { title: "Pending", description: "desc" });
+      const ready = createFuda(db, { title: "Ready", description: "desc" });
+      updateFudaStatus(db, ready.id, FudaStatus.READY);
+      const inProgress = createFuda(db, { title: "In Progress", description: "desc" });
+      updateFudaStatus(db, inProgress.id, FudaStatus.IN_PROGRESS);
+      const inReview = createFuda(db, { title: "In Review", description: "desc" });
+      updateFudaStatus(db, inReview.id, FudaStatus.IN_REVIEW);
+      const blocked = createFuda(db, { title: "Blocked", description: "desc" });
+      updateFudaStatus(db, blocked.id, FudaStatus.BLOCKED);
+
+      const result = await runList({ projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fudas).toHaveLength(5);
+      const titles = result.fudas!.map((f) => f.title);
+      expect(titles).toContain("Pending");
+      expect(titles).toContain("Ready");
+      expect(titles).toContain("In Progress");
+      expect(titles).toContain("In Review");
+      expect(titles).toContain("Blocked");
+    });
+
+    test("returns empty when all fuda are done", async () => {
+      const fuda1 = createFuda(db, { title: "Done 1", description: "desc" });
+      const fuda2 = createFuda(db, { title: "Done 2", description: "desc" });
+      updateFudaStatus(db, fuda1.id, FudaStatus.DONE);
+      updateFudaStatus(db, fuda2.id, FudaStatus.DONE);
+
+      const result = await runList({ projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fudas).toHaveLength(0);
     });
 
     test("excludes soft-deleted fuda by default", async () => {
@@ -217,6 +269,87 @@ describe("list command", () => {
       } finally {
         rmSync(uninitializedDir, { recursive: true, force: true });
       }
+    });
+  });
+
+  describe("all flag", () => {
+    test("includes done fuda when all flag is set", async () => {
+      const fuda1 = createFuda(db, {
+        title: "Pending task",
+        description: "First description",
+      });
+      const fuda2 = createFuda(db, {
+        title: "Done task",
+        description: "Second description",
+      });
+      updateFudaStatus(db, fuda2.id, FudaStatus.DONE);
+
+      const result = await runList({ projectRoot: testDir, all: true });
+
+      expect(result.success).toBe(true);
+      expect(result.fudas).toHaveLength(2);
+      expect(result.fudas!.map((f) => f.title)).toContain("Pending task");
+      expect(result.fudas!.map((f) => f.title)).toContain("Done task");
+    });
+
+    test("includes failed fuda when all flag is set", async () => {
+      const fuda1 = createFuda(db, {
+        title: "Pending task",
+        description: "First description",
+      });
+      const fuda2 = createFuda(db, {
+        title: "Failed task",
+        description: "Second description",
+      });
+      updateFudaStatus(db, fuda2.id, FudaStatus.FAILED);
+
+      const result = await runList({ projectRoot: testDir, all: true });
+
+      expect(result.success).toBe(true);
+      expect(result.fudas).toHaveLength(2);
+      expect(result.fudas!.map((f) => f.title)).toContain("Pending task");
+      expect(result.fudas!.map((f) => f.title)).toContain("Failed task");
+    });
+
+    test("includes all statuses when all flag is set", async () => {
+      createFuda(db, { title: "Pending", description: "desc" });
+      const ready = createFuda(db, { title: "Ready", description: "desc" });
+      updateFudaStatus(db, ready.id, FudaStatus.READY);
+      const done = createFuda(db, { title: "Done", description: "desc" });
+      updateFudaStatus(db, done.id, FudaStatus.DONE);
+      const failed = createFuda(db, { title: "Failed", description: "desc" });
+      updateFudaStatus(db, failed.id, FudaStatus.FAILED);
+
+      const result = await runList({ projectRoot: testDir, all: true });
+
+      expect(result.success).toBe(true);
+      expect(result.fudas).toHaveLength(4);
+      const titles = result.fudas!.map((f) => f.title);
+      expect(titles).toContain("Pending");
+      expect(titles).toContain("Ready");
+      expect(titles).toContain("Done");
+      expect(titles).toContain("Failed");
+    });
+
+    test("still excludes soft-deleted fuda when all flag is set", async () => {
+      const fuda1 = createFuda(db, {
+        title: "Active task",
+        description: "Still active",
+      });
+      const fuda2 = createFuda(db, {
+        title: "Deleted task",
+        description: "Soft deleted",
+      });
+      db.run(
+        "UPDATE fuda SET deleted_at = datetime('now') WHERE id = ?",
+        [fuda2.id]
+      );
+
+      const result = await runList({ projectRoot: testDir, all: true });
+
+      expect(result.success).toBe(true);
+      expect(result.fudas).toHaveLength(1);
+      expect(result.fudas![0].title).toBe("Active task");
     });
   });
 

@@ -2,12 +2,13 @@ import { Database } from "bun:sqlite";
 import { existsSync } from "fs";
 import { join } from "path";
 import { type Fuda, type FudaStatus } from "../../types";
-import { getAllFuda, getFudaByStatus } from "../../db/fuda";
+import { getAllFuda, getFudaByStatus, getActiveFuda } from "../../db/fuda";
 import { SHIKIGAMI_DIR, DB_FILENAME } from "../../config/paths";
 
 export interface ListOptions {
   status?: FudaStatus;
   limit?: number;
+  all?: boolean;
   projectRoot?: string;
 }
 
@@ -39,9 +40,14 @@ export async function runList(options: ListOptions = {}): Promise<ListResult> {
     let fudas: Fuda[];
 
     if (options.status) {
+      // Explicit status filter takes precedence
       fudas = getFudaByStatus(db, options.status);
-    } else {
+    } else if (options.all) {
+      // Show all fuda including done/failed
       fudas = getAllFuda(db, options.limit);
+    } else {
+      // Default: show only active fuda (exclude done/failed)
+      fudas = getActiveFuda(db, options.limit);
     }
 
     // Apply limit if filtering by status
