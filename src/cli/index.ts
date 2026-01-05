@@ -12,6 +12,7 @@ import { runList } from "./commands/list";
 import { runUpdate } from "./commands/update";
 import { runLog } from "./commands/log";
 import { runAgentGuide } from "./commands/agent-guide";
+import { runUpgrade } from "./commands/upgrade";
 import { runLore, runInteractiveLore, formatLoreList, formatLoreEntry } from "./commands/lore";
 import { output, outputError } from "../utils/output";
 
@@ -355,6 +356,35 @@ program
         output(result.structured, true);
       } else {
         console.log(result.content);
+      }
+    } else {
+      outputError(result.error!, isJson);
+      process.exit(1);
+    }
+  });
+
+// Upgrade command
+program
+  .command("upgrade")
+  .description("Upgrade shiki to the latest version")
+  .option("-c, --check", "Check for updates without installing")
+  .option("-f, --force", "Force upgrade even if already on latest")
+  .action(async (options) => {
+    const isJson = program.opts().json;
+    const result = await runUpgrade({
+      check: options.check,
+      force: options.force,
+    });
+
+    if (result.success) {
+      if (isJson) {
+        output(result, true);
+      } else {
+        console.log(result.message);
+        if (result.currentVersion && result.latestVersion) {
+          console.log(`  Current: ${result.currentVersion}`);
+          console.log(`  Latest:  ${result.latestVersion}`);
+        }
       }
     } else {
       outputError(result.error!, isJson);
