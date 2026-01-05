@@ -105,7 +105,9 @@ describe("TopBar component", () => {
       // Each shortcut should appear near its tab label
       // Verify shortcuts are present in the output
       mockTabs.forEach((tab) => {
-        expect(output).toContain(tab.shortcut);
+        if (tab.shortcut) {
+          expect(output).toContain(tab.shortcut);
+        }
         expect(output).toContain(tab.label);
       });
     });
