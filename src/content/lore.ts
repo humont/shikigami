@@ -10,58 +10,58 @@ export const LORE_ENTRIES: LoreEntry[] = [
   // Spirits
   {
     term: "shikigami",
-    brief: "General-purpose spirit servants",
+    brief: "Spirit servants summoned and controlled by onmyoji",
     category: "spirits",
     aliases: ["shiki"],
-    lore: `In the mist-shrouded courts of ancient Japan, onmyoji practitioners learned to bind spirits to their will. These servants, known as shikigami (式神), were crafted from paper, straw, or pure intention—given form through ritual and sustained by their master's spiritual energy.
+    lore: `Shikigami (式神, "ceremonial spirits") are supernatural beings from Japanese folklore, summoned and controlled by onmyoji—practitioners of onmyodo. The belief originates from the Heian period (794-1185). Shikigami have no stable physical form; they may appear as animals, shadows, or animated paper talismans. Their power is directly connected to their master's spiritual force. A skilled onmyoji can command shikigami to possess animals or people, while a careless practitioner risks losing control—legends warn that uncontrolled shikigami may turn on their masters.
 
-Shikigami are obedient and tireless, executing their master's commands without question. They excel at straightforward tasks: fetching, carrying, transforming, and building. In our realm, they represent the general-purpose agents—reliable spirits that handle the bulk of coding work. They write functions, fix bugs, implement features, and tirelessly refactor code at their master's behest.
+Shikigami serve as charms for good fortune, amulets for protection, or instruments of curses. They are often compared to the Western concept of a wizard's familiar. In the Izanagi-ryu folk religion, elite onmyoji could summon an exceptionally powerful variant called shikioji to ward off disasters and demons.
 
-Though they lack the specialized knowledge of their more powerful brethren, their versatility makes them indispensable. A wise onmyoji knows that most tasks are best entrusted to these faithful servants.`,
+In Shikigami, the general-purpose AI agents are named after these spirits. Like their mythological counterparts, they are summoned to execute tasks on behalf of their master (the developer). They handle the bulk of coding work—writing functions, fixing bugs, implementing features—serving faithfully until their task is complete.`,
   },
   {
     term: "tengu",
-    brief: "Powerful spirits of wisdom and martial prowess",
+    brief: "Mountain spirits of martial wisdom",
     category: "spirits",
-    lore: `High in the mist-shrouded mountains dwell the tengu (天狗)—ancient spirits with crimson faces and elongated noses, or in their more fearsome aspect, the beaked visages of great birds. They are masters of the sword and keepers of esoteric knowledge, known to train only the most worthy warriors in the secret arts.
+    lore: `Tengu (天狗, "heavenly dogs") are supernatural creatures from Japanese folklore, originally depicted as disruptive demons and harbingers of war. Over centuries, their image evolved into protective—if still dangerous—spirits of mountains and forests. They are one of the best-known yokai, yet are sometimes worshipped as Shinto kami.
 
-Tengu are proud, exacting, and possess vision that pierces through deception. Legend tells of how they taught the young Minamoto no Yoshitsune the art of the blade, transforming a fugitive prince into an undefeated general.
+Early tengu appeared as kite-like beings with avian wings, heads, or beaks. The iconic long red nose emerged in the 14th century as a humanization of the original bird's bill. There are two types: kotengu (lesser tengu with bird forms) and daitengu (great tengu with human forms, long noses, and greater wisdom). The king of tengu, Sojobo, famously taught the warrior Minamoto no Yoshitsune the arts of swordsmanship, tactics, and magic—transforming a fugitive prince into an undefeated general.
 
-In the digital realm, tengu spirits are summoned for tasks requiring deep architectural insight and rigorous analysis. They review code with a master's discerning eye, refactor tangled systems into elegant designs, and architect solutions that lesser spirits cannot conceive. Call upon a tengu when the work demands wisdom beyond mere execution.`,
+Tengu represent ultimate mastery and hidden wisdom in martial arts tradition. In Shikigami, tengu-type agents are reserved for tasks requiring deep expertise: architecture decisions, complex refactoring, and code review. Like the mountain spirits who trained legendary warriors, they bring exacting standards and piercing insight to work that demands wisdom beyond mere execution.`,
   },
   {
     term: "kitsune",
-    brief: "Clever fox spirits, tricksters and problem-solvers",
+    brief: "Fox spirits of cunning and transformation",
     category: "spirits",
-    lore: `The kitsune (狐) are fox spirits of legendary cunning. Born in the wild spaces where the mortal and spirit worlds blur, they grow more powerful with age—their tails multiplying until the eldest possess nine, shimmering with otherworldly fire. Masters of illusion and shapeshifting, kitsune can assume any form, solve any riddle, and find paths where none exist.
+    lore: `Kitsune (狐) are fox spirits from Japanese folklore, noted for their paranormal abilities, particularly shapeshifting. Stories depict them as intelligent beings whose powers increase with age and wisdom. The more tails a kitsune possesses—up to nine—the older and more powerful it is. A fox grows additional tails after living 100 years; nine-tailed kitsune turn white or gold and acquire abilities beyond comprehension, including bending time and space, eventually attaining omniscience.
 
-Some kitsune serve the goddess Inari as celestial messengers, while others delight in testing mortals with impossible puzzles. All share an insatiable curiosity and a talent for lateral thinking that defies conventional logic.
+There are two primary types: zenko ("good foxes") who serve the Shinto deity Inari as divine messengers and guardians, and nogitsune ("field foxes") who follow their own whims—mischievous, malevolent, or simply indifferent. Good kitsune are white, a color of good omen, and possess power to ward off evil. The legendary onmyoji Abe no Seimei was said to be the son of the fox spirit Kuzunoha.
 
-In our system, kitsune spirits handle the tasks that confound other agents: elusive bugs that evade reproduction, creative challenges requiring novel approaches, and tests that must anticipate the unexpected. When you face a problem that seems to have no solution, whisper your need to the foxfire—a kitsune may be listening.`,
+In Shikigami, kitsune-type agents handle tasks that confound straightforward approaches: elusive bugs, creative challenges, and problems requiring lateral thinking. Like the foxes who solve riddles and find paths where none exist, they bring cunning and unconventional wisdom to work that defies standard solutions.`,
   },
   {
     term: "onmyoji",
-    brief: "The practitioner who commands the spirits",
+    brief: "Practitioners of the Way of Yin and Yang",
     category: "spirits",
     aliases: ["onmyouji", "master"],
-    lore: `In the Heian period, the onmyoji (陰陽師) were court officials who practiced onmyodo—the Way of Yin and Yang. They divined fortunes, exorcised malevolent spirits, and advised emperors on matters both mundane and supernatural. The greatest among them, Abe no Seimei, was said to command legions of shikigami and see truths hidden from mortal eyes.
+    lore: `Onmyoji (陰陽師) were court officials in ancient Japan who practiced onmyodo—the Way of Yin and Yang. This system combined astronomy, calendrics, divination, and magic, evolving from Chinese yin-yang philosophy introduced in the 6th century and influenced by Taoism, Buddhism, and Confucianism. Onmyoji analyzed strange events, conducted exorcisms, warded against evil spirits, and performed rites of geomancy.
 
-An onmyoji's power lies not in physical strength but in knowledge: understanding the patterns of the cosmos, the names of spirits, and the rituals that bind intention to reality. They stand at the threshold between worlds, translating human will into supernatural action.
+The most famous onmyoji was Abe no Seimei (921-1005 AD), whose legendary abilities included predicting Emperor Kazan's abdication through celestial observation. According to legend, Seimei was half-kitsune—his mother, Kuzunoha, was a fox spirit. His symbol, the five-pointed star (Seimei-mon), embodies the Five Elements: wood, fire, earth, metal, and water. From the late 10th century, the government ministry of onmyodo was controlled by the Abe clan.
 
-You, dear developer, are the onmyoji of this system. You define the tasks, set the priorities, and orchestrate the spirits that labor on your behalf. The fuda you inscribe become commands, and the spirits you summon—shikigami, tengu, kitsune—become extensions of your will. Command wisely.`,
+In Shikigami, you—the developer—are the onmyoji. You define tasks, set priorities, and orchestrate the spirits that labor on your behalf. The fuda you inscribe become commands, and the agents you summon—shikigami, tengu, kitsune—become extensions of your will.`,
   },
 
   // Artifacts
   {
     term: "fuda",
-    brief: "Sacred paper talismans representing task units",
+    brief: "Sacred talismans inscribed with spiritual power",
     category: "artifacts",
     aliases: ["ofuda", "talisman"],
-    lore: `The fuda (札), or more formally ofuda, are sacred paper talismans inscribed with prayers, mantras, or the names of deities. Shrine maidens brush these strips with vermillion ink, each stroke an act of devotion that imbues the paper with spiritual potency. Hung above doorways, they ward off evil; carried on the person, they grant protection and fortune.
+    lore: `Ofuda (お札/御札, honorific form of fuda, "slip of paper") are talismans found in Shinto shrines and Buddhist temples throughout Japan. They are made from paper, wood, cloth, or metal, and are considered imbued with the power of kami (deities) or Buddhist figures. Paper ofuda are called kamifuda; wooden ones are kifuda.
 
-In onmyodo practice, fuda serve as vessels for commands. An onmyoji writes their intention upon the paper, and when activated, the fuda compels spirits to action. Some fuda bind, others banish, and still others grant temporary powers to their bearer.
+Ofuda serve various purposes: protection against calamity, safety within the home, or finding love. Unlike omamori (portable amulets for individuals), ofuda protect an entire household. Most families place them on kamidana (household altars) or high on north or west-facing walls. The origins of ofuda trace to both Taoist lingfu talismans (introduced via onmyodo) and woodblock prints from the Nara and Heian periods.
 
-In Shikigami, a fuda is a unit of work—a task inscribed with title, description, and intent. Like their physical counterparts, our fuda carry meaning and purpose. When a spirit claims a fuda, it accepts a sacred contract: to fulfill the inscribed task or report why it could not. The fuda tracks this covenant through its lifecycle, from inscription to completion.`,
+In Shikigami, a fuda is a unit of work—a task inscribed with title, description, and intent. Like sacred talismans, each fuda carries purpose and power. When an agent claims a fuda, it accepts a contract: fulfill the inscribed task or report why it could not. The system tracks this covenant through the fuda's lifecycle, from creation to completion.`,
   },
 ];
 
