@@ -1,7 +1,10 @@
-import { describe, test, expect } from "bun:test";
-
-// Extract testable functions - we'll need to export these
-// For now, testing the logic inline
+import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+import { mkdtempSync, rmSync, mkdirSync, existsSync } from "fs";
+import { join } from "path";
+import { tmpdir } from "os";
+import { Database } from "bun:sqlite";
+import { runPostUpgradeMigrations } from "../../src/cli/commands/upgrade";
+import { SHIKIGAMI_DIR, DB_FILENAME } from "../../src/config/paths";
 
 describe("upgrade", () => {
   describe("compareVersions", () => {
@@ -79,6 +82,75 @@ describe("upgrade", () => {
       expect(getArtifactName("darwin-arm64")).toBe("shiki-darwin-arm64");
       expect(getArtifactName("darwin-x64")).toBe("shiki-darwin-x64");
       expect(getArtifactName("windows-x64")).toBe("shiki-windows-x64.exe");
+    });
+  });
+
+  describe("runPostUpgradeMigrations", () => {
+    let testDir: string;
+
+    beforeEach(() => {
+      testDir = mkdtempSync(join(tmpdir(), "shiki-upgrade-test-"));
+    });
+
+    afterEach(() => {
+      rmSync(testDir, { recursive: true, force: true });
+    });
+
+    test("skips when .shikigami directory does not exist", () => {
+      const result = runPostUpgradeMigrations(testDir);
+
+      expect(result.applied).toBe(0);
+      expect(result.skipped).toBe(true);
+    });
+
+    test("skips when database does not exist", () => {
+      mkdirSync(join(testDir, SHIKIGAMI_DIR));
+
+      const result = runPostUpgradeMigrations(testDir);
+
+      expect(result.applied).toBe(0);
+      expect(result.skipped).toBe(true);
+    });
+
+    test("runs pending migrations on existing database", () => {
+      // Create .shikigami directory and database with only the first migration
+      const shikiDir = join(testDir, SHIKIGAMI_DIR);
+      mkdirSync(shikiDir);
+      const dbPath = join(shikiDir, DB_FILENAME);
+
+      // Create database with only migrations table (no migrations applied)
+      const db = new Database(dbPath);
+      db.run(`
+        CREATE TABLE migrations (
+          name TEXT PRIMARY KEY,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+      `);
+      db.close();
+
+      const result = runPostUpgradeMigrations(testDir);
+
+      // Should have applied all migrations
+      expect(result.applied).toBeGreaterThan(0);
+      expect(result.skipped).toBe(false);
+    });
+
+    test("reports zero when all migrations already applied", () => {
+      // Create .shikigami directory with fully migrated database
+      const shikiDir = join(testDir, SHIKIGAMI_DIR);
+      mkdirSync(shikiDir);
+      const dbPath = join(shikiDir, DB_FILENAME);
+
+      // Use initializeDb to create fully migrated database
+      const db = new Database(dbPath);
+      const { initializeDb } = require("../../src/db/index");
+      initializeDb(db);
+      db.close();
+
+      const result = runPostUpgradeMigrations(testDir);
+
+      expect(result.applied).toBe(0);
+      expect(result.skipped).toBe(false);
     });
   });
 });

@@ -1,6 +1,10 @@
 import { existsSync, unlinkSync, renameSync, chmodSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
+import { Database } from "bun:sqlite";
+import { runMigrations, getMigrationStatus } from "../../db/migrations";
+import { allMigrations } from "../../db/migrations/all";
+import { SHIKIGAMI_DIR, DB_FILENAME } from "../../config/paths";
 
 const REPO = "humont/shikigami";
 const CURRENT_VERSION = "0.1.0";
@@ -16,8 +20,46 @@ interface UpgradeResult {
   currentVersion?: string;
   latestVersion?: string;
   upgraded?: boolean;
+  migrationsApplied?: number;
   message?: string;
   error?: string;
+}
+
+export interface MigrationResult {
+  applied: number;
+  skipped: boolean;
+}
+
+export function runPostUpgradeMigrations(projectRoot: string = process.cwd()): MigrationResult {
+  const shikiDir = join(projectRoot, SHIKIGAMI_DIR);
+  const dbPath = join(shikiDir, DB_FILENAME);
+
+  // Skip if no .shikigami directory or database
+  if (!existsSync(shikiDir) || !existsSync(dbPath)) {
+    return { applied: 0, skipped: true };
+  }
+
+  const db = new Database(dbPath);
+
+  try {
+    // Get count of already applied migrations
+    const beforeStatus = getMigrationStatus(db);
+    const beforeCount = beforeStatus.length;
+
+    // Run any pending migrations
+    runMigrations(db, allMigrations);
+
+    // Get count after
+    const afterStatus = getMigrationStatus(db);
+    const afterCount = afterStatus.length;
+
+    return {
+      applied: afterCount - beforeCount,
+      skipped: false,
+    };
+  } finally {
+    db.close();
+  }
 }
 
 function getPlatform(): string {
@@ -207,12 +249,20 @@ export async function runUpgrade(options: {
       throw err;
     }
 
+    // Run database migrations after successful upgrade
+    const migrationResult = runPostUpgradeMigrations();
+    let message = `Upgraded: ${currentVersion} → ${latest.version}`;
+    if (migrationResult.applied > 0) {
+      message += ` (${migrationResult.applied} migration${migrationResult.applied > 1 ? 's' : ''} applied)`;
+    }
+
     return {
       success: true,
       currentVersion,
       latestVersion: latest.version,
-      message: `Upgraded: ${currentVersion} → ${latest.version}`,
+      message,
       upgraded: true,
+      migrationsApplied: migrationResult.applied,
     };
   } catch (err) {
     return {
