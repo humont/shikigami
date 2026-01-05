@@ -16,6 +16,29 @@ import { runUpgrade } from "./commands/upgrade";
 import { runLore, runInteractiveLore, formatLoreList, formatLoreEntry } from "./commands/lore";
 import { output, outputError } from "../utils/output";
 
+// ANSI color codes
+const colors = {
+  reset: "\x1b[0m",
+  dim: "\x1b[2m",
+  bold: "\x1b[1m",
+  gray: "\x1b[90m",
+  red: "\x1b[31m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  cyan: "\x1b[36m",
+  magenta: "\x1b[35m",
+};
+
+const statusColors: Record<string, string> = {
+  pending: colors.gray,
+  ready: colors.cyan,
+  in_progress: colors.yellow,
+  in_review: colors.magenta,
+  blocked: colors.red,
+  failed: colors.red,
+  done: colors.green,
+};
+
 const program = new Command();
 
 program
@@ -205,8 +228,17 @@ program
         if (result.fudas!.length === 0) {
           console.log("No fuda found.");
         } else {
-          console.log("Fuda:\n");
-          result.fudas!.forEach((f) => console.log(formatFudaSummary(f)));
+          console.log("");
+          let lastPriority: number | null = null;
+          result.fudas!.forEach((f) => {
+            // Add blank line between priority groups
+            if (lastPriority !== null && f.priority !== lastPriority) {
+              console.log("");
+            }
+            console.log(formatFudaSummary(f));
+            lastPriority = f.priority;
+          });
+          console.log("");
         }
       }
     } else {
@@ -319,7 +351,10 @@ function formatFudaDetails(fuda: any): string {
 
 function formatFudaSummary(fuda: any): string {
   const id = fuda.displayId ? `${fuda.id} (${fuda.displayId})` : fuda.id;
-  return `  ${id} [${fuda.status}|p${fuda.priority}] ${fuda.title}`;
+  const statusColor = statusColors[fuda.status] || colors.reset;
+  const statusLabel = `${statusColor}${fuda.status}${colors.reset}`;
+  const priorityLabel = `${colors.dim}p${fuda.priority}${colors.reset}`;
+  return `  ${colors.dim}${id}${colors.reset}  ${statusLabel}  ${priorityLabel}  ${fuda.title}`;
 }
 
 function formatStatus(status: any): string {
