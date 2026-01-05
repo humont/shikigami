@@ -9,7 +9,8 @@ const SHIKI_DIR = ".shiki";
 const DB_FILENAME = "shiki.db";
 
 export interface ImportOptions {
-  file: string;
+  file?: string;
+  stdin?: string;
   dryRun?: boolean;
   projectRoot?: string;
 }
@@ -43,6 +44,21 @@ function getDb(projectRoot: string = process.cwd()): Database | null {
 }
 
 export async function runImport(options: ImportOptions): Promise<ImportResult> {
+  // Validate mutual exclusivity
+  if (options.file && options.stdin) {
+    return {
+      success: false,
+      error: "Cannot use both file and stdin input",
+    };
+  }
+
+  if (!options.file && !options.stdin) {
+    return {
+      success: false,
+      error: "Must provide either file or stdin input",
+    };
+  }
+
   const db = getDb(options.projectRoot);
 
   if (!db) {
@@ -53,16 +69,23 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
   }
 
   try {
-    // Read and parse file
-    if (!existsSync(options.file)) {
-      db.close();
-      return {
-        success: false,
-        error: `File not found: ${options.file}`,
-      };
+    let content: string;
+
+    if (options.stdin) {
+      // Use stdin content directly
+      content = options.stdin;
+    } else {
+      // Read from file
+      if (!existsSync(options.file!)) {
+        db.close();
+        return {
+          success: false,
+          error: `File not found: ${options.file}`,
+        };
+      }
+      content = readFileSync(options.file!, "utf-8");
     }
 
-    const content = readFileSync(options.file, "utf-8");
     let data: FudaImport[];
 
     try {
