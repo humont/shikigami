@@ -23,6 +23,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@inquirer/prompts": "^8.1.0",
     "commander": "^14.0.2",
     "ink": "^6.6.0",
     "node-notifier": "^10.0.1",

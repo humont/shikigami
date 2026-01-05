@@ -12,6 +12,7 @@ import { runList } from "./commands/list";
 import { runUpdate } from "./commands/update";
 import { runLog } from "./commands/log";
 import { runAgentGuide } from "./commands/agent-guide";
+import { runLore, formatLoreList, formatLoreEntry } from "./commands/lore";
 import { output, outputError } from "../utils/output";
 
 const program = new Command();
@@ -334,6 +335,52 @@ program
         output(result.structured, true);
       } else {
         console.log(result.content);
+      }
+    } else {
+      outputError(result.error!, isJson);
+      process.exit(1);
+    }
+  });
+
+// Lore command
+program
+  .command("lore [term]")
+  .description("Explore the mythology behind Shikigami's naming")
+  .option("-i, --interactive", "Browse terms interactively")
+  .action(async (term, options) => {
+    const isJson = program.opts().json;
+
+    if (options.interactive && !isJson) {
+      // Interactive mode - show list and prompt for selection
+      const { LORE_ENTRIES } = await import("../content/lore");
+      const { select } = await import("@inquirer/prompts");
+
+      const choices = LORE_ENTRIES.map((entry) => ({
+        name: `${entry.term} - ${entry.brief}`,
+        value: entry.term,
+      }));
+
+      const selectedTerm = await select({
+        message: "Choose a term to learn its lore:",
+        choices,
+      });
+
+      const result = await runLore({ term: selectedTerm });
+      if (result.success && result.entry) {
+        console.log("\n" + formatLoreEntry(result.entry));
+      }
+      return;
+    }
+
+    const result = await runLore({ term });
+
+    if (result.success) {
+      if (isJson) {
+        output(result.entry || result.entries, true);
+      } else if (result.entry) {
+        console.log(formatLoreEntry(result.entry));
+      } else {
+        console.log(formatLoreList(result.entries!));
       }
     } else {
       outputError(result.error!, isJson);
