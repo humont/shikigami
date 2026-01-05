@@ -10,6 +10,11 @@ import { generateId } from "../utils/id";
 import { generateDisplayId } from "../utils/display-id";
 import { logAuditEntry, AuditOperation } from "./audit";
 
+export interface ClaimResult {
+  success: boolean;
+  reason?: "already_in_progress" | "invalid_status";
+}
+
 interface FudaRow {
   id: string;
   display_id: string | null;
@@ -218,6 +223,53 @@ export function updateFudaAssignment(db: Database, id: string, spiritId: string 
     });
   }
   db.run("UPDATE fuda SET assigned_spirit_id = ?, updated_at = datetime('now') WHERE id = ?", [spiritId, id]);
+}
+
+export function claimFuda(db: Database, id: string, spiritId: string | null, actor?: string): ClaimResult {
+  // Get current state before attempting claim for audit logging
+  const fudaBefore = getFuda(db, id, true);
+
+  // Atomic update: only succeeds if fuda is claimable (pending or ready)
+  const result = db.run(
+    `UPDATE fuda
+     SET status = 'in_progress',
+         assigned_spirit_id = ?,
+         updated_at = datetime('now')
+     WHERE id = ?
+       AND deleted_at IS NULL
+       AND status IN ('pending', 'ready')`,
+    [spiritId, id]
+  );
+
+  if (result.changes > 0) {
+    // Log audit entries for the successful claim
+    if (fudaBefore) {
+      logAuditEntry(db, {
+        fudaId: id,
+        operation: AuditOperation.UPDATE,
+        field: "status",
+        oldValue: fudaBefore.status,
+        newValue: FudaStatus.IN_PROGRESS,
+        actor,
+      });
+      logAuditEntry(db, {
+        fudaId: id,
+        operation: AuditOperation.UPDATE,
+        field: "assigned_spirit_id",
+        oldValue: fudaBefore.assignedSpiritId ?? undefined,
+        newValue: spiritId ?? undefined,
+        actor,
+      });
+    }
+    return { success: true };
+  }
+
+  // Check why it failed
+  const fuda = getFuda(db, id);
+  if (fuda?.status === FudaStatus.IN_PROGRESS) {
+    return { success: false, reason: "already_in_progress" };
+  }
+  return { success: false, reason: "invalid_status" };
 }
 
 export function updateFudaCommit(db: Database, id: string, commitHash: string, actor?: string): void {

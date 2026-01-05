@@ -12,6 +12,7 @@ import {
   restoreFuda,
   hardDeleteFuda,
   getDeletedFuda,
+  claimFuda,
 } from "../../src/db/fuda";
 import { FudaStatus, SpiritType } from "../../src/types";
 
@@ -247,6 +248,92 @@ describe("fuda CRUD", () => {
       const deleted = getDeletedFuda(db);
       expect(deleted).toHaveLength(1);
       expect(deleted[0].title).toBe("Deleted");
+    });
+  });
+
+  describe("claimFuda", () => {
+    test("claims ready fuda successfully", () => {
+      const fuda = createFuda(db, { title: "Test", description: "Desc" });
+      updateFudaStatus(db, fuda.id, FudaStatus.READY);
+
+      const result = claimFuda(db, fuda.id, "agent-123");
+
+      expect(result.success).toBe(true);
+      expect(result.reason).toBeUndefined();
+
+      const updated = getFuda(db, fuda.id);
+      expect(updated!.status).toBe(FudaStatus.IN_PROGRESS);
+      expect(updated!.assignedSpiritId).toBe("agent-123");
+    });
+
+    test("claims pending fuda successfully", () => {
+      const fuda = createFuda(db, { title: "Test", description: "Desc" });
+      // Default status is pending
+
+      const result = claimFuda(db, fuda.id, "agent-456");
+
+      expect(result.success).toBe(true);
+
+      const updated = getFuda(db, fuda.id);
+      expect(updated!.status).toBe(FudaStatus.IN_PROGRESS);
+      expect(updated!.assignedSpiritId).toBe("agent-456");
+    });
+
+    test("claims fuda with null spiritId", () => {
+      const fuda = createFuda(db, { title: "Test", description: "Desc" });
+      updateFudaStatus(db, fuda.id, FudaStatus.READY);
+
+      const result = claimFuda(db, fuda.id, null);
+
+      expect(result.success).toBe(true);
+
+      const updated = getFuda(db, fuda.id);
+      expect(updated!.status).toBe(FudaStatus.IN_PROGRESS);
+      expect(updated!.assignedSpiritId).toBeNull();
+    });
+
+    test("returns already_in_progress for in_progress fuda", () => {
+      const fuda = createFuda(db, { title: "Test", description: "Desc" });
+      updateFudaStatus(db, fuda.id, FudaStatus.IN_PROGRESS);
+
+      const result = claimFuda(db, fuda.id, "agent-789");
+
+      expect(result.success).toBe(false);
+      expect(result.reason).toBe("already_in_progress");
+
+      // Status should remain unchanged
+      const unchanged = getFuda(db, fuda.id);
+      expect(unchanged!.status).toBe(FudaStatus.IN_PROGRESS);
+    });
+
+    test("returns invalid_status for done fuda", () => {
+      const fuda = createFuda(db, { title: "Test", description: "Desc" });
+      updateFudaStatus(db, fuda.id, FudaStatus.DONE);
+
+      const result = claimFuda(db, fuda.id, "agent-123");
+
+      expect(result.success).toBe(false);
+      expect(result.reason).toBe("invalid_status");
+    });
+
+    test("returns invalid_status for failed fuda", () => {
+      const fuda = createFuda(db, { title: "Test", description: "Desc" });
+      updateFudaStatus(db, fuda.id, FudaStatus.FAILED);
+
+      const result = claimFuda(db, fuda.id, "agent-123");
+
+      expect(result.success).toBe(false);
+      expect(result.reason).toBe("invalid_status");
+    });
+
+    test("returns invalid_status for in_review fuda", () => {
+      const fuda = createFuda(db, { title: "Test", description: "Desc" });
+      updateFudaStatus(db, fuda.id, FudaStatus.IN_REVIEW);
+
+      const result = claimFuda(db, fuda.id, "agent-123");
+
+      expect(result.success).toBe(false);
+      expect(result.reason).toBe("invalid_status");
     });
   });
 });
