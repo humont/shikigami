@@ -10,6 +10,7 @@ import { createDepsCommand } from "./commands/deps";
 import { runImport } from "./commands/import";
 import { runList } from "./commands/list";
 import { runUpdate } from "./commands/update";
+import { runStart } from "./commands/start";
 import { runLog, runLogAll } from "./commands/log";
 import { runAgentGuide } from "./commands/agent-guide";
 import { runUpgrade } from "./commands/upgrade";
@@ -172,6 +173,26 @@ program
 
     if (result.success) {
       output(isJson ? result.fuda : `Updated fuda ${result.fuda!.id} to status '${result.fuda!.status}'`, isJson);
+    } else {
+      outputError(result.error!, isJson);
+      process.exit(1);
+    }
+  });
+
+// Start command
+program
+  .command("start <id>")
+  .description("Start working on a fuda (set status to in_progress)")
+  .option("--assigned-spirit-id <spiritId>", "Assign a spirit to this fuda")
+  .action(async (id, options) => {
+    const isJson = program.opts().json;
+    const result = await runStart({
+      id,
+      assignedSpiritId: options.assignedSpiritId,
+    });
+
+    if (result.success) {
+      output(isJson ? result.fuda : `Started working on fuda ${result.fuda!.id}`, isJson);
     } else {
       outputError(result.error!, isJson);
       process.exit(1);
