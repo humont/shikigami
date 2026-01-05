@@ -45,11 +45,9 @@ export function formatLoreList(entries: LoreEntry[]): string {
   const categoryTitles: Record<string, string> = {
     spirits: "Spirits of the Realm",
     artifacts: "Sacred Artifacts",
-    states: "States of Being",
-    concepts: "Mystical Concepts",
   };
 
-  const categoryOrder = ["spirits", "artifacts", "states", "concepts"];
+  const categoryOrder = ["spirits", "artifacts"];
 
   const lines: string[] = [
     "The Lore of Shikigami",

@@ -119,13 +119,14 @@ describe("lore command", () => {
       expect(terms).toContain("onmyoji");
     });
 
-    test("includes status terms", async () => {
+    test("only includes mythical lore (spirits and artifacts)", async () => {
       const result = await runLore({});
 
       expect(result.success).toBe(true);
-      const terms = result.entries!.map((e) => e.term);
-      expect(terms).toContain("ready");
-      expect(terms).toContain("pending");
+      const categories = new Set(result.entries!.map((e) => e.category));
+      expect(categories).toContain("spirits");
+      expect(categories).toContain("artifacts");
+      expect(categories.size).toBe(2);
     });
   });
 });
