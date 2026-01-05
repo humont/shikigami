@@ -30,12 +30,32 @@ program
   .command("init")
   .description("Initialize shiki in the current project")
   .option("-f, --force", "Overwrite existing database")
+  .option("-y, --yes", "Auto-accept adding shikigami docs to AGENTS.md/CLAUDE.md")
+  .option("--no-agent-docs", "Skip adding shikigami docs to AGENTS.md/CLAUDE.md")
   .action(async (options) => {
     const isJson = program.opts().json;
-    const result = await runInit({ force: options.force });
+    const result = await runInit({
+      force: options.force,
+      yes: options.yes,
+      noAgentDocs: options.agentDocs === false,
+    });
 
     if (result.success) {
-      output(isJson ? result : `Shiki initialized at ${result.dbPath}`, isJson);
+      if (isJson) {
+        output(result, isJson);
+      } else {
+        let message = `Shiki initialized at ${result.dbPath}`;
+        if (result.agentDocsCreated?.length) {
+          message += `\nCreated: ${result.agentDocsCreated.join(", ")}`;
+        }
+        if (result.agentDocsModified?.length) {
+          message += `\nModified: ${result.agentDocsModified.join(", ")}`;
+        }
+        if (result.agentDocsSkipped?.length) {
+          message += `\nSkipped (already has shikigami): ${result.agentDocsSkipped.join(", ")}`;
+        }
+        output(message, isJson);
+      }
     } else {
       outputError(result.error!, isJson);
       process.exit(1);

@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { mkdtempSync, rmSync, existsSync, readFileSync } from "fs";
+import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { runInit } from "../../src/cli/commands/init";
@@ -119,6 +119,196 @@ describe("init command", () => {
       expect(content).toMatch(/^#\s+.+/m);
       // Should have code blocks for CLI examples
       expect(content).toMatch(/```/);
+    });
+  });
+
+  describe("appending to AGENTS.md/CLAUDE.md", () => {
+    const SHIKIGAMI_SECTION = `## Shikigami Task Management
+
+This project uses Shikigami for AI agent task orchestration.
+See .shikigami/AGENT_INSTRUCTIONS.md for the agent workflow guide.
+
+Key commands:
+- \`shiki ready --json\` - Get tasks ready to work on
+- \`shiki agent-guide\` - View full agent workflow documentation`;
+
+    describe("with --yes flag (non-interactive)", () => {
+      test("appends shikigami reference to existing AGENTS.md", async () => {
+        const agentsPath = join(testDir, "AGENTS.md");
+        writeFileSync(agentsPath, "# Agents\n\nExisting content.\n");
+
+        await runInit({ projectRoot: testDir, yes: true });
+
+        const content = readFileSync(agentsPath, "utf-8");
+        expect(content).toContain("# Agents");
+        expect(content).toContain("Existing content.");
+        expect(content).toContain("Shikigami Task Management");
+        expect(content).toContain(".shikigami/AGENT_INSTRUCTIONS.md");
+      });
+
+      test("appends shikigami reference to existing CLAUDE.md", async () => {
+        const claudePath = join(testDir, "CLAUDE.md");
+        writeFileSync(claudePath, "# Claude Instructions\n\nBe helpful.\n");
+
+        await runInit({ projectRoot: testDir, yes: true });
+
+        const content = readFileSync(claudePath, "utf-8");
+        expect(content).toContain("# Claude Instructions");
+        expect(content).toContain("Be helpful.");
+        expect(content).toContain("Shikigami Task Management");
+      });
+
+      test("appends to both AGENTS.md and CLAUDE.md if both exist", async () => {
+        writeFileSync(join(testDir, "AGENTS.md"), "# Agents\n");
+        writeFileSync(join(testDir, "CLAUDE.md"), "# Claude\n");
+
+        const result = await runInit({ projectRoot: testDir, yes: true });
+
+        expect(result.success).toBe(true);
+        expect(readFileSync(join(testDir, "AGENTS.md"), "utf-8")).toContain("Shikigami");
+        expect(readFileSync(join(testDir, "CLAUDE.md"), "utf-8")).toContain("Shikigami");
+      });
+
+      test("creates AGENTS.md if it does not exist", async () => {
+        const agentsPath = join(testDir, "AGENTS.md");
+        expect(existsSync(agentsPath)).toBe(false);
+
+        await runInit({ projectRoot: testDir, yes: true });
+
+        expect(existsSync(agentsPath)).toBe(true);
+        const content = readFileSync(agentsPath, "utf-8");
+        expect(content).toContain("Shikigami Task Management");
+      });
+
+      test("does not create CLAUDE.md if it does not exist", async () => {
+        // CLAUDE.md is only modified if it already exists
+        const claudePath = join(testDir, "CLAUDE.md");
+        expect(existsSync(claudePath)).toBe(false);
+
+        await runInit({ projectRoot: testDir, yes: true });
+
+        // CLAUDE.md should not be created (only AGENTS.md is created)
+        expect(existsSync(claudePath)).toBe(false);
+      });
+    });
+
+    describe("skipping if already contains shikigami", () => {
+      test("skips AGENTS.md if it already contains shikigami reference", async () => {
+        const agentsPath = join(testDir, "AGENTS.md");
+        const originalContent = "# Agents\n\n## Shikigami\n\nAlready configured.\n";
+        writeFileSync(agentsPath, originalContent);
+
+        await runInit({ projectRoot: testDir, yes: true });
+
+        const content = readFileSync(agentsPath, "utf-8");
+        // Should not have duplicate shikigami sections
+        expect(content).toBe(originalContent);
+      });
+
+      test("skips CLAUDE.md if it already contains shikigami reference", async () => {
+        const claudePath = join(testDir, "CLAUDE.md");
+        const originalContent = "# Claude\n\nUse shikigami for tasks.\n";
+        writeFileSync(claudePath, originalContent);
+
+        await runInit({ projectRoot: testDir, yes: true });
+
+        const content = readFileSync(claudePath, "utf-8");
+        expect(content).toBe(originalContent);
+      });
+
+      test("case-insensitive check for shikigami", async () => {
+        const agentsPath = join(testDir, "AGENTS.md");
+        const originalContent = "# Agents\n\nSHIKIGAMI is configured.\n";
+        writeFileSync(agentsPath, originalContent);
+
+        await runInit({ projectRoot: testDir, yes: true });
+
+        const content = readFileSync(agentsPath, "utf-8");
+        expect(content).toBe(originalContent);
+      });
+    });
+
+    describe("--no-agent-docs flag", () => {
+      test("does not append to AGENTS.md when --no-agent-docs is set", async () => {
+        const agentsPath = join(testDir, "AGENTS.md");
+        const originalContent = "# Agents\n";
+        writeFileSync(agentsPath, originalContent);
+
+        await runInit({ projectRoot: testDir, noAgentDocs: true });
+
+        const content = readFileSync(agentsPath, "utf-8");
+        expect(content).toBe(originalContent);
+        expect(content).not.toContain("Shikigami");
+      });
+
+      test("does not append to CLAUDE.md when --no-agent-docs is set", async () => {
+        const claudePath = join(testDir, "CLAUDE.md");
+        const originalContent = "# Claude\n";
+        writeFileSync(claudePath, originalContent);
+
+        await runInit({ projectRoot: testDir, noAgentDocs: true });
+
+        const content = readFileSync(claudePath, "utf-8");
+        expect(content).toBe(originalContent);
+      });
+
+      test("does not create AGENTS.md when --no-agent-docs is set", async () => {
+        await runInit({ projectRoot: testDir, noAgentDocs: true });
+
+        expect(existsSync(join(testDir, "AGENTS.md"))).toBe(false);
+      });
+    });
+
+    describe("default behavior (no --yes flag)", () => {
+      test("does not modify AGENTS.md without --yes flag", async () => {
+        const agentsPath = join(testDir, "AGENTS.md");
+        const originalContent = "# Agents\n";
+        writeFileSync(agentsPath, originalContent);
+
+        await runInit({ projectRoot: testDir });
+
+        const content = readFileSync(agentsPath, "utf-8");
+        expect(content).toBe(originalContent);
+      });
+
+      test("does not create AGENTS.md without --yes flag", async () => {
+        await runInit({ projectRoot: testDir });
+
+        expect(existsSync(join(testDir, "AGENTS.md"))).toBe(false);
+      });
+    });
+
+    describe("result reporting", () => {
+      test("reports which files were modified in result", async () => {
+        writeFileSync(join(testDir, "AGENTS.md"), "# Agents\n");
+        writeFileSync(join(testDir, "CLAUDE.md"), "# Claude\n");
+
+        const result = await runInit({ projectRoot: testDir, yes: true });
+
+        expect(result.success).toBe(true);
+        expect(result.agentDocsModified).toBeDefined();
+        expect(result.agentDocsModified).toContain("AGENTS.md");
+        expect(result.agentDocsModified).toContain("CLAUDE.md");
+      });
+
+      test("reports created files separately from modified", async () => {
+        // No existing files
+        const result = await runInit({ projectRoot: testDir, yes: true });
+
+        expect(result.success).toBe(true);
+        expect(result.agentDocsCreated).toBeDefined();
+        expect(result.agentDocsCreated).toContain("AGENTS.md");
+      });
+
+      test("reports skipped files", async () => {
+        writeFileSync(join(testDir, "AGENTS.md"), "# Agents\n\nShikigami already here.\n");
+
+        const result = await runInit({ projectRoot: testDir, yes: true });
+
+        expect(result.success).toBe(true);
+        expect(result.agentDocsSkipped).toBeDefined();
+        expect(result.agentDocsSkipped).toContain("AGENTS.md");
+      });
     });
   });
 });
