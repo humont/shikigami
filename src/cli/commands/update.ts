@@ -3,9 +3,7 @@ import { existsSync } from "fs";
 import { join } from "path";
 import { findFudaByPrefix, getFuda, updateFudaStatus, updateFudaAssignment } from "../../db/fuda";
 import { type Fuda, FudaStatus } from "../../types";
-
-const SHIKI_DIR = ".shiki";
-const DB_FILENAME = "shiki.db";
+import { SHIKIGAMI_DIR, DB_FILENAME } from "../../config/paths";
 
 const VALID_STATUSES = Object.values(FudaStatus);
 
@@ -23,7 +21,7 @@ export interface UpdateResult {
 }
 
 function getDb(projectRoot: string = process.cwd()): Database | null {
-  const dbPath = join(projectRoot, SHIKI_DIR, DB_FILENAME);
+  const dbPath = join(projectRoot, SHIKIGAMI_DIR, DB_FILENAME);
   if (!existsSync(dbPath)) {
     return null;
   }

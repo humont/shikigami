@@ -30,7 +30,7 @@ Fuda can have dependencies that control execution order:
 ```bash
 shiki init
 ```
-Creates a `.shiki/shiki.db` SQLite database in your project.
+Creates a `.shikigami/shiki.db` SQLite database in your project.
 
 ### 2. Check What's Ready to Work On
 ```bash
@@ -209,4 +209,4 @@ Returns counts by status:
 
 ## Database Location
 
-The Fuda database is stored at `.shiki/shiki.db` in your project root. It's a SQLite database that can be accessed directly for advanced operations.
+The Fuda database is stored at `.shikigami/shiki.db` in your project root. It's a SQLite database that can be accessed directly for advanced operations.

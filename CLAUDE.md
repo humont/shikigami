@@ -11,7 +11,7 @@ Shikigami is an AI agent orchestration system for parallel development. It uses 
 - This project follows TDD.
   - if the task is to write a test for a feature, it is likely that the feature is not yet implemented or does not even exist.
   - tests are colocated with the feature they are testing. so you may need to create the directory for the feature if it doesn't exist.
-- This project dogfoods its own CLI. See `.shiki/AGENT_INSTRUCTIONS.md` for the full workflow guide.
+- This project dogfoods its own CLI. See `.shikigami/AGENT_INSTRUCTIONS.md` for the full workflow guide.
 - If the user asks you to "get to work" or something similar, you should use the CLI to get a task and then work on it.
 
 ## Commands
@@ -60,7 +60,7 @@ tests/             # Mirrors src/ structure, uses bun:test
 
 ### Database
 
-- SQLite stored at `.shiki/shiki.db` in project root
+- SQLite stored at `.shikigami/shiki.db` in project root
 - Migrations embedded in `src/db/migrations/` (not SQL files)
 - Tests use in-memory SQLite (`:memory:`) for isolation
 

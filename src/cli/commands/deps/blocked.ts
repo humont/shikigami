@@ -4,9 +4,7 @@ import { join } from "path";
 import { findFudaByPrefix, getFuda } from "../../../db/fuda";
 import { getBlockingDependencies } from "../../../db/dependencies";
 import { type Fuda, FudaStatus } from "../../../types";
-
-const SHIKI_DIR = ".shiki";
-const DB_FILENAME = "shiki.db";
+import { SHIKIGAMI_DIR, DB_FILENAME } from "../../../config/paths";
 
 export interface DepsBlockedOptions {
   id: string;
@@ -28,7 +26,7 @@ export interface DepsBlockedResult {
 }
 
 function getDb(projectRoot: string = process.cwd()): Database | null {
-  const dbPath = join(projectRoot, SHIKI_DIR, DB_FILENAME);
+  const dbPath = join(projectRoot, SHIKIGAMI_DIR, DB_FILENAME);
   if (!existsSync(dbPath)) {
     return null;
   }

@@ -4,9 +4,7 @@ import { join } from "path";
 import { findFudaByPrefix } from "../../../db/fuda";
 import { addFudaDependency } from "../../../db/dependencies";
 import { type DependencyType } from "../../../types";
-
-const SHIKI_DIR = ".shiki";
-const DB_FILENAME = "shiki.db";
+import { SHIKIGAMI_DIR, DB_FILENAME } from "../../../config/paths";
 
 export interface DepsAddOptions {
   fudaId: string;
@@ -23,7 +21,7 @@ export interface DepsAddResult {
 }
 
 function getDb(projectRoot: string = process.cwd()): Database | null {
-  const dbPath = join(projectRoot, SHIKI_DIR, DB_FILENAME);
+  const dbPath = join(projectRoot, SHIKIGAMI_DIR, DB_FILENAME);
   if (!existsSync(dbPath)) {
     return null;
   }

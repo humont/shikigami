@@ -8,8 +8,8 @@ Implement the Fuda task management system as specified in FUDA.md. Test-driven d
 
 - **SQLite Driver**: Bun's built-in `bun:sqlite`
 - **CLI Framework**: Commander v14 (already installed)
-- **DB Location**: `.shiki/shiki.db` in project root
-- **Migrations**: Plain SQL files in `.shiki/migrations/`
+- **DB Location**: `.shikigami/shiki.db` in project root
+- **Migrations**: Plain SQL files in `.shikigami/migrations/`
 - **Test Runner**: `bun test`
 - **Approach**: Write tests first, then implement
 
@@ -123,7 +123,7 @@ tests/
 ### Phase 3: CLI Commands + Tests
 
 13. **Write tests/cli/init.test.ts**
-    - Test creates `.shiki/` directory
+    - Test creates `.shikigami/` directory
     - Test creates database file
     - Test runs initial migration
     - Test `--force` overwrites existing
@@ -216,7 +216,7 @@ export const migration: Migration = {
 };
 ```
 
-The `.shiki/` directory only contains:
+The `.shikigami/` directory only contains:
 - `shiki.db` - the database (migrations table tracks applied migrations)
 
 ## Running Tests

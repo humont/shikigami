@@ -16,17 +16,17 @@ describe("init command", () => {
     rmSync(testDir, { recursive: true, force: true });
   });
 
-  test("creates .shiki directory", async () => {
+  test("creates .shikigami directory", async () => {
     const result = await runInit({ projectRoot: testDir });
 
     expect(result.success).toBe(true);
-    expect(existsSync(join(testDir, ".shiki"))).toBe(true);
+    expect(existsSync(join(testDir, ".shikigami"))).toBe(true);
   });
 
   test("creates database file", async () => {
     await runInit({ projectRoot: testDir });
 
-    expect(existsSync(join(testDir, ".shiki", "shiki.db"))).toBe(true);
+    expect(existsSync(join(testDir, ".shikigami", "shiki.db"))).toBe(true);
   });
 
   test("runs migrations and creates tables", async () => {
@@ -34,7 +34,7 @@ describe("init command", () => {
 
     // Verify tables exist by opening db
     const { Database } = await import("bun:sqlite");
-    const db = new Database(join(testDir, ".shiki", "shiki.db"));
+    const db = new Database(join(testDir, ".shikigami", "shiki.db"));
     const tables = db
       .query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
       .all() as { name: string }[];
@@ -71,21 +71,21 @@ describe("init command", () => {
 
     const parsed = JSON.parse(json);
     expect(parsed.success).toBe(true);
-    expect(parsed.dbPath).toContain(".shiki");
+    expect(parsed.dbPath).toContain(".shikigami");
   });
 
   describe("AGENT_INSTRUCTIONS.md creation", () => {
     test("creates AGENT_INSTRUCTIONS.md on init", async () => {
       await runInit({ projectRoot: testDir });
 
-      const instructionsPath = join(testDir, ".shiki", "AGENT_INSTRUCTIONS.md");
+      const instructionsPath = join(testDir, ".shikigami", "AGENT_INSTRUCTIONS.md");
       expect(existsSync(instructionsPath)).toBe(true);
     });
 
     test("AGENT_INSTRUCTIONS.md contains agent workflow content", async () => {
       await runInit({ projectRoot: testDir });
 
-      const instructionsPath = join(testDir, ".shiki", "AGENT_INSTRUCTIONS.md");
+      const instructionsPath = join(testDir, ".shikigami", "AGENT_INSTRUCTIONS.md");
       const content = readFileSync(instructionsPath, "utf-8");
 
       // Should match the shared content exactly
@@ -95,7 +95,7 @@ describe("init command", () => {
     test("AGENT_INSTRUCTIONS.md is regenerated on init --force", async () => {
       await runInit({ projectRoot: testDir });
 
-      const instructionsPath = join(testDir, ".shiki", "AGENT_INSTRUCTIONS.md");
+      const instructionsPath = join(testDir, ".shikigami", "AGENT_INSTRUCTIONS.md");
 
       // Modify the file
       const { writeFileSync } = await import("fs");
@@ -112,7 +112,7 @@ describe("init command", () => {
     test("AGENT_INSTRUCTIONS.md is properly formatted markdown", async () => {
       await runInit({ projectRoot: testDir });
 
-      const instructionsPath = join(testDir, ".shiki", "AGENT_INSTRUCTIONS.md");
+      const instructionsPath = join(testDir, ".shikigami", "AGENT_INSTRUCTIONS.md");
       const content = readFileSync(instructionsPath, "utf-8");
 
       // Should have markdown headers

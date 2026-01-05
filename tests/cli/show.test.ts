@@ -16,7 +16,7 @@ describe("show command", () => {
   beforeEach(async () => {
     testDir = mkdtempSync(join(tmpdir(), "shiki-test-"));
     await runInit({ projectRoot: testDir });
-    db = new Database(join(testDir, ".shiki", "shiki.db"));
+    db = new Database(join(testDir, ".shikigami", "shiki.db"));
   });
 
   afterEach(() => {

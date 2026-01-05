@@ -3,24 +3,22 @@ import { runMigrations } from "./migrations";
 import { allMigrations } from "./migrations/all";
 import { existsSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
-
-const SHIKI_DIR = ".shiki";
-const DB_FILENAME = "shiki.db";
+import { SHIKIGAMI_DIR, DB_FILENAME } from "../config/paths";
 
 let dbInstance: Database | null = null;
 
 export function getDbPath(projectRoot: string = process.cwd()): string {
-  return join(projectRoot, SHIKI_DIR, DB_FILENAME);
+  return join(projectRoot, SHIKIGAMI_DIR, DB_FILENAME);
 }
 
-export function getShikiDir(projectRoot: string = process.cwd()): string {
-  return join(projectRoot, SHIKI_DIR);
+export function getShikigamiDir(projectRoot: string = process.cwd()): string {
+  return join(projectRoot, SHIKIGAMI_DIR);
 }
 
-export function ensureShikiDir(projectRoot: string = process.cwd()): void {
-  const shikiDir = getShikiDir(projectRoot);
-  if (!existsSync(shikiDir)) {
-    mkdirSync(shikiDir, { recursive: true });
+export function ensureShikigamiDir(projectRoot: string = process.cwd()): void {
+  const shikigamiDir = getShikigamiDir(projectRoot);
+  if (!existsSync(shikigamiDir)) {
+    mkdirSync(shikigamiDir, { recursive: true });
   }
 }
 
@@ -35,7 +33,7 @@ export function getDb(dbPath?: string): Database {
 }
 
 export function createDb(dbPath: string): Database {
-  ensureShikiDir(dirname(dirname(dbPath)));
+  ensureShikigamiDir(dirname(dirname(dbPath)));
   return new Database(dbPath);
 }
 
