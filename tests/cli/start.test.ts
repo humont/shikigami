@@ -5,7 +5,7 @@ import { tmpdir } from "os";
 import { Database } from "bun:sqlite";
 import { runInit } from "../../src/cli/commands/init";
 import { runStart } from "../../src/cli/commands/start";
-import { createFuda, getFuda } from "../../src/db/fuda";
+import { createFuda, getFuda, updateFudaStatus } from "../../src/db/fuda";
 import { FudaStatus } from "../../src/types";
 
 describe("start command", () => {
@@ -146,6 +146,74 @@ describe("start command", () => {
       } finally {
         rmSync(uninitializedDir, { recursive: true, force: true });
       }
+    });
+  });
+
+  describe("claim protection", () => {
+    test("fails when fuda is already in_progress", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+      updateFudaStatus(db, fuda.id, FudaStatus.IN_PROGRESS);
+
+      const result = await runStart({
+        projectRoot: testDir,
+        id: fuda.id,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("already being worked on");
+    });
+
+    test("fails when fuda status is done", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+      updateFudaStatus(db, fuda.id, FudaStatus.DONE);
+
+      const result = await runStart({
+        projectRoot: testDir,
+        id: fuda.id,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Cannot start fuda");
+      expect(result.error).toContain("done");
+    });
+
+    test("fails when fuda status is failed", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+      updateFudaStatus(db, fuda.id, FudaStatus.FAILED);
+
+      const result = await runStart({
+        projectRoot: testDir,
+        id: fuda.id,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Cannot start fuda");
+      expect(result.error).toContain("failed");
+    });
+
+    test("error message hints to find other work", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+      updateFudaStatus(db, fuda.id, FudaStatus.IN_PROGRESS);
+
+      const result = await runStart({
+        projectRoot: testDir,
+        id: fuda.id,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("shiki list --status ready");
     });
   });
 });
