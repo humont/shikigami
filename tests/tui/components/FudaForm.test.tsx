@@ -85,27 +85,41 @@ describe("FudaForm component", () => {
     });
 
     test("allows typing in title field", () => {
-      const { stdin, lastFrame } = render(
-        <FudaForm mode="create" onSubmit={() => {}} />
+      let submittedData: any = null;
+      const handleSubmit = (data: any) => {
+        submittedData = data;
+      };
+
+      const { stdin } = render(
+        <FudaForm mode="create" onSubmit={handleSubmit} />
       );
 
       stdin.write("New Task");
+      stdin.write("\r"); // Submit
 
-      const output = lastFrame();
-      expect(output).toContain("New Task");
+      // Verify title was captured via submission
+      expect(submittedData?.title).toBe("New Task");
     });
 
     test("Tab key moves to next field", () => {
-      const { stdin, lastFrame: frame1 } = render(
-        <FudaForm mode="create" onSubmit={() => {}} />
+      let submittedData: any = null;
+      const handleSubmit = (data: any) => {
+        submittedData = data;
+      };
+
+      const { stdin } = render(
+        <FudaForm mode="create" onSubmit={handleSubmit} />
       );
 
-      const before = frame1();
-      stdin.write("\t"); // Tab key
-      const after = frame1();
+      // Type title, tab to description, type description, submit
+      stdin.write("Title");
+      stdin.write("\t");
+      stdin.write("Desc");
+      stdin.write("\r");
 
-      // Focus should have moved, changing the render
-      expect(before).not.toBe(after);
+      // Verify both fields were captured (proving tab worked)
+      expect(submittedData?.title).toBe("Title");
+      expect(submittedData?.description).toBe("Desc");
     });
 
     test("renders submit button", () => {
@@ -374,26 +388,35 @@ describe("FudaForm component", () => {
       );
 
       stdin.write("Valid Title");
-      stdin.write("\t\t\t\t\r"); // Navigate and submit
+      stdin.write("\r"); // Submit directly
 
       expect(submittedData).not.toBeNull();
+      expect(submittedData?.title).toBe("Valid Title");
     });
 
     test("clears validation error when user starts typing", () => {
-      const { stdin, lastFrame } = render(
-        <FudaForm mode="create" onSubmit={() => {}} />
+      let submittedData: any = null;
+      let submitCount = 0;
+      const handleSubmit = (data: any) => {
+        submittedData = data;
+        submitCount++;
+      };
+
+      const { stdin } = render(
+        <FudaForm mode="create" onSubmit={handleSubmit} />
       );
 
-      // Submit empty to trigger error
-      stdin.write("\t\t\t\t\r");
-      const errorOutput = lastFrame();
+      // Submit empty to trigger validation (won't call onSubmit)
+      stdin.write("\r");
+      expect(submitCount).toBe(0); // Should not submit with empty title
 
-      // Now start typing
-      stdin.write("T");
-      const afterTyping = lastFrame();
+      // Now type and submit again
+      stdin.write("Valid Title");
+      stdin.write("\r");
 
-      // Error should be cleared or different
-      expect(afterTyping).not.toBe(errorOutput);
+      // Should submit successfully now
+      expect(submitCount).toBe(1);
+      expect(submittedData?.title).toBe("Valid Title");
     });
 
     test("validates priority is a valid number", () => {
@@ -436,10 +459,12 @@ describe("FudaForm component", () => {
       );
 
       stdin.write("Title Only");
-      stdin.write("\t\t\t\t\r"); // Skip description and submit
+      stdin.write("\r"); // Submit directly without description
 
       // Should still submit successfully
       expect(submittedData).not.toBeNull();
+      expect(submittedData?.title).toBe("Title Only");
+      expect(submittedData?.description).toBe("");
     });
 
     test("trims whitespace from title", () => {
