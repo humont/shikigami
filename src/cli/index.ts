@@ -115,11 +115,13 @@ program
   .command("update <id>")
   .description("Update a fuda's status")
   .requiredOption("-s, --status <status>", "New status (pending, ready, in_progress, in_review, blocked, failed, done)")
+  .option("--assigned-spirit-id <spiritId>", "Assign a spirit to this fuda (empty string to clear)")
   .action(async (id, options) => {
     const isJson = program.opts().json;
     const result = await runUpdate({
       id,
       status: options.status,
+      assignedSpiritId: options.assignedSpiritId,
     });
 
     if (result.success) {
