@@ -11,7 +11,7 @@ Shikigami is an AI agent orchestration system for parallel development. It uses 
 - This project follows TDD.
   - if the task is to write a test for a feature, it is likely that the feature is not yet implemented or does not even exist.
   - tests are colocated with the feature they are testing. so you may need to create the directory for the feature if it doesn't exist.
-- This project dogfoods its own CLI - see @FUDA_AGENT_GUIDE.md for more details on how to use it.
+- This project dogfoods its own CLI. See `.shiki/AGENT_INSTRUCTIONS.md` for the full workflow guide.
 - If the user asks you to "get to work" or something similar, you should use the CLI to get a task and then work on it.
 
 ## Commands
