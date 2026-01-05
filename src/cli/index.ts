@@ -12,7 +12,7 @@ import { runList } from "./commands/list";
 import { runUpdate } from "./commands/update";
 import { runLog } from "./commands/log";
 import { runAgentGuide } from "./commands/agent-guide";
-import { runLore, formatLoreList, formatLoreEntry } from "./commands/lore";
+import { runLore, runInteractiveLore, formatLoreList, formatLoreEntry } from "./commands/lore";
 import { output, outputError } from "../utils/output";
 
 const program = new Command();
@@ -360,13 +360,24 @@ program
         value: entry.term,
       }));
 
-      const selectedTerm = await select({
-        message: "Choose a term to learn its lore:",
-        choices,
-      });
+      const result = await runInteractiveLore(() =>
+        select({
+          message: "Choose a term to learn its lore:",
+          choices,
+        })
+      );
 
-      const result = await runLore({ term: selectedTerm });
-      if (result.success && result.entry) {
+      if (result.cancelled) {
+        // User pressed Ctrl+C, exit silently
+        return;
+      }
+
+      if (result.error) {
+        outputError(result.error, false);
+        process.exit(1);
+      }
+
+      if (result.entry) {
         console.log("\n" + formatLoreEntry(result.entry));
       }
       return;

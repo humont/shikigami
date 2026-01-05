@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { runLore } from "../../src/cli/commands/lore";
+import { runLore, runInteractiveLore } from "../../src/cli/commands/lore";
 import { LORE_ENTRIES, type LoreEntry } from "../../src/content/lore";
 
 describe("lore command", () => {
@@ -143,5 +143,42 @@ describe("lore entries data", () => {
       // Lore should be descriptive, at least 100 characters
       expect(entry.lore.length).toBeGreaterThanOrEqual(100);
     }
+  });
+});
+
+describe("interactive lore mode", () => {
+  test("handles user cancellation gracefully", async () => {
+    // Simulate ExitPromptError from @inquirer/prompts
+    const mockPrompt = async () => {
+      const error = new Error("User force closed the prompt with SIGINT");
+      error.name = "ExitPromptError";
+      throw error;
+    };
+
+    const result = await runInteractiveLore(mockPrompt);
+
+    expect(result.cancelled).toBe(true);
+    expect(result.error).toBeUndefined();
+  });
+
+  test("returns selected entry on successful selection", async () => {
+    const mockPrompt = async () => "fuda";
+
+    const result = await runInteractiveLore(mockPrompt);
+
+    expect(result.cancelled).toBe(false);
+    expect(result.entry).toBeDefined();
+    expect(result.entry!.term).toBe("fuda");
+  });
+
+  test("propagates unexpected errors", async () => {
+    const mockPrompt = async () => {
+      throw new Error("Unexpected error");
+    };
+
+    const result = await runInteractiveLore(mockPrompt);
+
+    expect(result.cancelled).toBe(false);
+    expect(result.error).toBe("Unexpected error");
   });
 });

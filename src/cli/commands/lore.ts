@@ -11,6 +11,36 @@ export interface LoreResult {
   error?: string;
 }
 
+export interface InteractiveLoreResult {
+  cancelled: boolean;
+  entry?: LoreEntry;
+  error?: string;
+}
+
+export type PromptFn = () => Promise<string>;
+
+export async function runInteractiveLore(
+  promptFn: PromptFn
+): Promise<InteractiveLoreResult> {
+  try {
+    const selectedTerm = await promptFn();
+    const entry = findLoreEntry(selectedTerm);
+    return {
+      cancelled: false,
+      entry,
+    };
+  } catch (error) {
+    // Handle user cancellation (Ctrl+C)
+    if (error instanceof Error && error.name === "ExitPromptError") {
+      return { cancelled: true };
+    }
+    return {
+      cancelled: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
 export async function runLore(options: LoreOptions): Promise<LoreResult> {
   if (options.term) {
     const entry = findLoreEntry(options.term);
