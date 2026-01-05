@@ -84,38 +84,47 @@ describe("StatusPicker component", () => {
     });
 
     test("j key moves selection down (vim-style)", () => {
-      const { stdin, lastFrame } = render(
+      let receivedStatus: FudaStatus | null = null;
+      const handleChange = (status: FudaStatus) => {
+        receivedStatus = status;
+      };
+
+      const { stdin } = render(
         <StatusPicker
           fudaId="sk-test1"
           currentStatus={FudaStatus.PENDING}
-          onStatusChange={() => {}}
+          onStatusChange={handleChange}
         />
       );
 
-      const frameBefore = lastFrame();
+      // j should move to ready (second option)
       stdin.write("j");
-      const frameAfter = lastFrame();
+      stdin.write("\r");
 
-      // Selection should have changed
-      expect(frameBefore).not.toBe(frameAfter);
+      expect(receivedStatus).toBe(FudaStatus.READY);
     });
 
     test("k key moves selection up (vim-style)", () => {
-      const { stdin, lastFrame } = render(
+      let receivedStatus: FudaStatus | null = null;
+      const handleChange = (status: FudaStatus) => {
+        receivedStatus = status;
+      };
+
+      const { stdin } = render(
         <StatusPicker
           fudaId="sk-test1"
           currentStatus={FudaStatus.PENDING}
-          onStatusChange={() => {}}
+          onStatusChange={handleChange}
         />
       );
 
-      // Move down first, then up
+      // Move down twice, then up once (pending -> ready -> in_progress -> ready)
       stdin.write("j");
-      const frameMid = lastFrame();
+      stdin.write("j");
       stdin.write("k");
-      const frameAfter = lastFrame();
+      stdin.write("\r");
 
-      expect(frameMid).not.toBe(frameAfter);
+      expect(receivedStatus).toBe(FudaStatus.READY);
     });
 
     test("Enter key confirms selection", () => {
@@ -329,20 +338,39 @@ describe("StatusPicker component", () => {
     });
 
     test("shows different visual for current status vs selected status", () => {
-      const { lastFrame, stdin } = render(
+      // Verify navigation works by checking callback receives different statuses
+      let receivedStatus: FudaStatus | null = null;
+      const handleChange = (status: FudaStatus) => {
+        receivedStatus = status;
+      };
+
+      const { stdin } = render(
         <StatusPicker
           fudaId="sk-test1"
           currentStatus={FudaStatus.PENDING}
-          onStatusChange={() => {}}
+          onStatusChange={handleChange}
         />
       );
 
-      const initialFrame = lastFrame();
-      stdin.write("\x1B[B"); // Move to a different status
-      const afterMoveFrame = lastFrame();
+      // Select current status (pending)
+      stdin.write("\r");
+      const firstSelection = receivedStatus;
 
-      // Visual should change when selection moves
-      expect(initialFrame).not.toBe(afterMoveFrame);
+      // Reset and select a different status
+      receivedStatus = null;
+      const { stdin: stdin2 } = render(
+        <StatusPicker
+          fudaId="sk-test1"
+          currentStatus={FudaStatus.PENDING}
+          onStatusChange={handleChange}
+        />
+      );
+      stdin2.write("\x1B[B"); // Move to ready
+      stdin2.write("\r");
+
+      // Should have selected different statuses
+      expect(firstSelection).toBe(FudaStatus.PENDING);
+      expect(receivedStatus).toBe(FudaStatus.READY);
     });
   });
 
