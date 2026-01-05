@@ -212,7 +212,17 @@ program
     });
 
     if (result.success) {
-      output(isJson ? result.fuda : `Finished fuda ${result.fuda!.id}`, isJson);
+      if (isJson) {
+        output(result, true);
+      } else {
+        console.log(`Finished fuda ${result.fuda!.id}`);
+        if (result.unblockedFuda && result.unblockedFuda.length > 0) {
+          console.log("\nThe following tasks are now ready to work on:");
+          for (const fuda of result.unblockedFuda) {
+            console.log(`  ${fuda.id}  ${fuda.title}`);
+          }
+        }
+      }
     } else {
       outputError(result.error!, isJson);
       process.exit(1);

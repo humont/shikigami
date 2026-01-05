@@ -5,7 +5,7 @@ import { tmpdir } from "os";
 import { Database } from "bun:sqlite";
 import { runInit } from "../../src/cli/commands/init";
 import { runFinish } from "../../src/cli/commands/finish";
-import { createFuda, getFuda } from "../../src/db/fuda";
+import { createFuda, getFuda, updateFudaStatus } from "../../src/db/fuda";
 import { addFudaDependency } from "../../src/db/dependencies";
 import { FudaStatus, DependencyType } from "../../src/types";
 
@@ -186,6 +186,132 @@ describe("finish command", () => {
       // Dependent should still be pending (blocker2 not done)
       const updatedDependent = getFuda(db, dependent.id);
       expect(updatedDependent!.status).toBe(FudaStatus.PENDING);
+    });
+  });
+
+  describe("unblocked tasks hint", () => {
+    test("returns empty unblockedFuda when no tasks were unblocked", async () => {
+      const fuda = createFuda(db, {
+        title: "Standalone task",
+        description: "No dependents",
+      });
+
+      const result = await runFinish({
+        projectRoot: testDir,
+        id: fuda.id,
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.unblockedFuda).toBeDefined();
+      expect(result.unblockedFuda).toHaveLength(0);
+    });
+
+    test("returns unblocked fuda when one task becomes ready", async () => {
+      const blocker = createFuda(db, {
+        title: "Blocker task",
+        description: "This blocks the dependent",
+      });
+      const dependent = createFuda(db, {
+        title: "Dependent task",
+        description: "This depends on blocker",
+      });
+
+      addFudaDependency(db, dependent.id, blocker.id, DependencyType.BLOCKS);
+
+      const result = await runFinish({
+        projectRoot: testDir,
+        id: blocker.id,
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.unblockedFuda).toBeDefined();
+      expect(result.unblockedFuda).toHaveLength(1);
+      expect(result.unblockedFuda![0].id).toBe(dependent.id);
+      expect(result.unblockedFuda![0].title).toBe("Dependent task");
+    });
+
+    test("returns multiple unblocked fuda when several tasks become ready", async () => {
+      const blocker = createFuda(db, {
+        title: "Blocker task",
+        description: "This blocks multiple tasks",
+      });
+      const dependent1 = createFuda(db, {
+        title: "Dependent 1",
+        description: "First dependent",
+      });
+      const dependent2 = createFuda(db, {
+        title: "Dependent 2",
+        description: "Second dependent",
+      });
+
+      addFudaDependency(db, dependent1.id, blocker.id, DependencyType.BLOCKS);
+      addFudaDependency(db, dependent2.id, blocker.id, DependencyType.BLOCKS);
+
+      const result = await runFinish({
+        projectRoot: testDir,
+        id: blocker.id,
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.unblockedFuda).toBeDefined();
+      expect(result.unblockedFuda).toHaveLength(2);
+
+      const unblockedIds = result.unblockedFuda!.map((f) => f.id);
+      expect(unblockedIds).toContain(dependent1.id);
+      expect(unblockedIds).toContain(dependent2.id);
+    });
+
+    test("does not include tasks that remain blocked by other dependencies", async () => {
+      const blocker1 = createFuda(db, {
+        title: "Blocker 1",
+        description: "First blocker",
+      });
+      const blocker2 = createFuda(db, {
+        title: "Blocker 2",
+        description: "Second blocker",
+      });
+      const dependent = createFuda(db, {
+        title: "Dependent task",
+        description: "Blocked by both",
+      });
+
+      addFudaDependency(db, dependent.id, blocker1.id, DependencyType.BLOCKS);
+      addFudaDependency(db, dependent.id, blocker2.id, DependencyType.BLOCKS);
+
+      const result = await runFinish({
+        projectRoot: testDir,
+        id: blocker1.id,
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.unblockedFuda).toBeDefined();
+      expect(result.unblockedFuda).toHaveLength(0);
+    });
+
+    test("does not include tasks that were already ready", async () => {
+      const blocker = createFuda(db, {
+        title: "Blocker task",
+        description: "Blocker",
+      });
+      const alreadyReady = createFuda(db, {
+        title: "Already ready task",
+        description: "Was already ready",
+      });
+
+      // Make the task ready before adding dependency relationship
+      updateFudaStatus(db, alreadyReady.id, FudaStatus.READY);
+
+      // Add a non-blocking dependency (related)
+      addFudaDependency(db, alreadyReady.id, blocker.id, DependencyType.RELATED);
+
+      const result = await runFinish({
+        projectRoot: testDir,
+        id: blocker.id,
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.unblockedFuda).toBeDefined();
+      expect(result.unblockedFuda).toHaveLength(0);
     });
   });
 });
