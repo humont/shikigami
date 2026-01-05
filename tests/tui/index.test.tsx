@@ -82,7 +82,7 @@ describe("TUI entry point", () => {
       await run();
 
       expect(renderCalls.length).toBe(1);
-      const rendered = renderCalls[0].component as React.ReactElement;
+      const rendered = renderCalls[0].component as React.ReactElement<{ onExit?: () => void }>;
       expect(rendered.props.onExit).toBeDefined();
       expect(typeof rendered.props.onExit).toBe("function");
     });
@@ -93,8 +93,8 @@ describe("TUI entry point", () => {
       await run();
 
       expect(renderCalls.length).toBe(1);
-      const rendered = renderCalls[0].component as React.ReactElement;
-      const onExit = rendered.props.onExit;
+      const rendered = renderCalls[0].component as React.ReactElement<{ onExit?: () => void }>;
+      const onExit = rendered.props.onExit!;
 
       // Call the exit handler
       onExit();
