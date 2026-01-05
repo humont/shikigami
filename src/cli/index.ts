@@ -11,6 +11,8 @@ import { runImport } from "./commands/import";
 import { runList } from "./commands/list";
 import { runUpdate } from "./commands/update";
 import { runStart } from "./commands/start";
+import { runFinish } from "./commands/finish";
+import { runFail } from "./commands/fail";
 import { runLog, runLogAll } from "./commands/log";
 import { runAgentGuide } from "./commands/agent-guide";
 import { runUpgrade } from "./commands/upgrade";
@@ -193,6 +195,42 @@ program
 
     if (result.success) {
       output(isJson ? result.fuda : `Started working on fuda ${result.fuda!.id}`, isJson);
+    } else {
+      outputError(result.error!, isJson);
+      process.exit(1);
+    }
+  });
+
+// Finish command
+program
+  .command("finish <id>")
+  .description("Mark a fuda as done")
+  .action(async (id, options) => {
+    const isJson = program.opts().json;
+    const result = await runFinish({
+      id,
+    });
+
+    if (result.success) {
+      output(isJson ? result.fuda : `Finished fuda ${result.fuda!.id}`, isJson);
+    } else {
+      outputError(result.error!, isJson);
+      process.exit(1);
+    }
+  });
+
+// Fail command
+program
+  .command("fail <id>")
+  .description("Mark a fuda as failed")
+  .action(async (id, options) => {
+    const isJson = program.opts().json;
+    const result = await runFail({
+      id,
+    });
+
+    if (result.success) {
+      output(isJson ? result.fuda : `Failed fuda ${result.fuda!.id}`, isJson);
     } else {
       outputError(result.error!, isJson);
       process.exit(1);

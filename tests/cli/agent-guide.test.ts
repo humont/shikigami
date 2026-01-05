@@ -49,6 +49,14 @@ describe("agent-guide command", () => {
     expect(result.content).toContain("shiki deps");
   });
 
+  test("includes status shortcut commands", async () => {
+    const result = await runAgentGuide();
+
+    expect(result.content).toContain("shiki start");
+    expect(result.content).toContain("shiki finish");
+    expect(result.content).toContain("shiki fail");
+  });
+
   test("includes status information", async () => {
     const result = await runAgentGuide();
 
@@ -110,6 +118,17 @@ describe("agent-guide command", () => {
     // CLI reference
     expect(structured.cliReference.commands).toBeDefined();
     expect(Array.isArray(structured.cliReference.commands)).toBe(true);
+  });
+
+  test("json format includes status shortcut commands", async () => {
+    const result = await runAgentGuide({ json: true });
+
+    const commands = result.structured!.cliReference.commands;
+    const commandNames = commands.map((c: { name: string }) => c.name);
+
+    expect(commandNames).toContain("shiki start");
+    expect(commandNames).toContain("shiki finish");
+    expect(commandNames).toContain("shiki fail");
   });
 
   test("includes best practices", async () => {

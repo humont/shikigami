@@ -186,6 +186,24 @@ shiki add -t "Title" -d "Description" \
 shiki remove <id> [-f|--force] [--json]
 ```
 
+### Status Shortcuts
+
+Convenient commands for common status transitions:
+
+```bash
+# Start working on a fuda (sets status to in_progress)
+shiki start <id> [--assigned-spirit-id <spirit>] [--json]
+
+# Mark fuda as finished (sets status to done)
+shiki finish <id> [--json]
+
+# Mark fuda as failed (sets status to failed)
+shiki fail <id> [--json]
+
+# General status update (for other statuses like blocked, in_review)
+shiki update <id> -s <status> [--assigned-spirit-id <spirit>] [--json]
+```
+
 ### Dependency Management
 
 ```bash

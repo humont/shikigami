@@ -57,11 +57,13 @@ Example response:
 ```
 
 ### 3. Claim a Task
-When an agent picks up a task, update its status to `in_progress` and assign the agent:
+When an agent picks up a task, start working on it:
 
 ```bash
-# Via the database directly (programmatic access)
-UPDATE fuda SET status = 'in_progress', assigned_spirit_id = 'agent-123' WHERE id = 'sk-a1b2c3'
+shiki start sk-a1b2c3 --json
+
+# Optionally identify yourself
+shiki start sk-a1b2c3 --assigned-spirit-id "agent-123" --json
 ```
 
 ### 4. Work on the Task
@@ -74,13 +76,14 @@ The agent should:
 ### 5. Complete or Fail the Task
 On success:
 ```bash
-UPDATE fuda SET status = 'done', output_commit_hash = 'abc123' WHERE id = 'sk-a1b2c3'
+shiki finish sk-a1b2c3 --json
 ```
 
 On failure:
 ```bash
-UPDATE fuda SET status = 'failed', failure_context = 'Error message...' WHERE id = 'sk-a1b2c3'
+shiki fail sk-a1b2c3 --json
 ```
+Note: To record failure details, add a comment in your commit or update the fuda description.
 
 ### 6. Check for Newly Ready Tasks
 After completing a task, dependent tasks may become unblocked:
@@ -160,6 +163,20 @@ Returns counts by status:
 }
 ```
 
+### Status Shortcuts
+Convenient commands for common status transitions:
+```bash
+# Start working on a task (sets status to in_progress)
+shiki start sk-a1b2c3 --json
+shiki start sk-a1b2c3 --assigned-spirit-id "agent-1" --json
+
+# Mark task as finished (sets status to done)
+shiki finish sk-a1b2c3 --json
+
+# Mark task as failed (sets status to failed)
+shiki fail sk-a1b2c3 --json
+```
+
 ## Integration Pattern for Coding Agents
 
 ```
@@ -171,7 +188,7 @@ Returns counts by status:
 │     └─> shiki ready --json --limit 1                        │
 │                                                             │
 │  2. CLAIM TASK                                              │
-│     └─> Update status to 'in_progress'                      │
+│     └─> shiki start <id> --json                             │
 │                                                             │
 │  3. EXECUTE TASK                                            │
 │     ├─> Read codebase                                       │
@@ -180,8 +197,8 @@ Returns counts by status:
 │     └─> Create commit                                       │
 │                                                             │
 │  4. REPORT RESULT                                           │
-│     ├─> Success: status = 'done', save commit hash          │
-│     └─> Failure: status = 'failed', save error context      │
+│     ├─> Success: shiki finish <id> --json                   │
+│     └─> Failure: shiki fail <id> --json                     │
 │                                                             │
 │  5. DISCOVER NEW TASKS (optional)                           │
 │     └─> shiki add ... --depends-on <current-task>           │
