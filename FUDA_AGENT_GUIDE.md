@@ -102,6 +102,32 @@ shiki add \
   --json
 ```
 
+### Batch Importing Tasks via Stdin
+For batch-adding multiple fuda without creating temporary files, use the `--stdin` flag:
+```bash
+echo '[{"title": "Task 1", "description": "First task"}, {"title": "Task 2", "description": "Second task"}]' | shiki import --stdin --json
+```
+
+This is useful for agents that discover multiple sub-tasks during implementation:
+```bash
+cat <<EOF | shiki import --stdin --json
+[
+  {
+    "title": "Refactor auth module",
+    "description": "Extract authentication logic into separate module",
+    "priority": 5,
+    "spiritType": "shikigami"
+  },
+  {
+    "title": "Add auth tests",
+    "description": "Write unit tests for auth module",
+    "priority": 4,
+    "spiritType": "kitsune"
+  }
+]
+EOF
+```
+
 ### Viewing a Task
 ```bash
 shiki show sk-a1b2c3 --json
