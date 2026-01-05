@@ -1,8 +1,9 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { mkdtempSync, rmSync, existsSync } from "fs";
+import { mkdtempSync, rmSync, existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { runInit } from "../../src/cli/commands/init";
+import { AGENT_INSTRUCTIONS_CONTENT } from "../../src/content/agent-instructions";
 
 describe("init command", () => {
   let testDir: string;
@@ -71,5 +72,53 @@ describe("init command", () => {
     const parsed = JSON.parse(json);
     expect(parsed.success).toBe(true);
     expect(parsed.dbPath).toContain(".shiki");
+  });
+
+  describe("AGENT_INSTRUCTIONS.md creation", () => {
+    test("creates AGENT_INSTRUCTIONS.md on init", async () => {
+      await runInit({ projectRoot: testDir });
+
+      const instructionsPath = join(testDir, ".shiki", "AGENT_INSTRUCTIONS.md");
+      expect(existsSync(instructionsPath)).toBe(true);
+    });
+
+    test("AGENT_INSTRUCTIONS.md contains agent workflow content", async () => {
+      await runInit({ projectRoot: testDir });
+
+      const instructionsPath = join(testDir, ".shiki", "AGENT_INSTRUCTIONS.md");
+      const content = readFileSync(instructionsPath, "utf-8");
+
+      // Should match the shared content exactly
+      expect(content).toBe(AGENT_INSTRUCTIONS_CONTENT);
+    });
+
+    test("AGENT_INSTRUCTIONS.md is regenerated on init --force", async () => {
+      await runInit({ projectRoot: testDir });
+
+      const instructionsPath = join(testDir, ".shiki", "AGENT_INSTRUCTIONS.md");
+
+      // Modify the file
+      const { writeFileSync } = await import("fs");
+      writeFileSync(instructionsPath, "modified content");
+
+      // Re-init with force
+      await runInit({ projectRoot: testDir, force: true });
+
+      const newContent = readFileSync(instructionsPath, "utf-8");
+      expect(newContent).toBe(AGENT_INSTRUCTIONS_CONTENT);
+      expect(newContent).not.toBe("modified content");
+    });
+
+    test("AGENT_INSTRUCTIONS.md is properly formatted markdown", async () => {
+      await runInit({ projectRoot: testDir });
+
+      const instructionsPath = join(testDir, ".shiki", "AGENT_INSTRUCTIONS.md");
+      const content = readFileSync(instructionsPath, "utf-8");
+
+      // Should have markdown headers
+      expect(content).toMatch(/^#\s+.+/m);
+      // Should have code blocks for CLI examples
+      expect(content).toMatch(/```/);
+    });
   });
 });

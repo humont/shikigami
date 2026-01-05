@@ -1,8 +1,9 @@
-import { existsSync, mkdirSync, unlinkSync } from "fs";
+import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "fs";
 import { join } from "path";
 import { Database } from "bun:sqlite";
 import { runMigrations } from "../../db/migrations";
 import { allMigrations } from "../../db/migrations/all";
+import { AGENT_INSTRUCTIONS_CONTENT } from "../../content/agent-instructions";
 
 const SHIKI_DIR = ".shiki";
 const DB_FILENAME = "shiki.db";
@@ -46,6 +47,10 @@ export async function runInit(options: InitOptions = {}): Promise<InitResult> {
     const db = new Database(dbPath);
     runMigrations(db, allMigrations);
     db.close();
+
+    // Create AGENT_INSTRUCTIONS.md
+    const instructionsPath = join(shikiDir, "AGENT_INSTRUCTIONS.md");
+    writeFileSync(instructionsPath, AGENT_INSTRUCTIONS_CONTENT);
 
     return {
       success: true,
