@@ -2,6 +2,7 @@ import { Database } from "bun:sqlite";
 import { existsSync } from "fs";
 import { join } from "path";
 import { findFudaByPrefix, getFuda, updateFudaStatus, updateFudaAssignment } from "../../db/fuda";
+import { updateReadyFuda } from "../../db/dependencies";
 import { type Fuda, FudaStatus } from "../../types";
 import { SHIKIGAMI_DIR, DB_FILENAME } from "../../config/paths";
 
@@ -65,6 +66,11 @@ export async function runUpdate(options: UpdateOptions): Promise<UpdateResult> {
 
     // Update status
     updateFudaStatus(db, fuda.id, options.status);
+
+    // If status changed to done, update dependent tasks' readiness
+    if (options.status === FudaStatus.DONE) {
+      updateReadyFuda(db);
+    }
 
     // Update assignment if provided
     if (options.assignedSpiritId !== undefined) {
