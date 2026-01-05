@@ -352,7 +352,9 @@ function formatFudaDetails(fuda: any): string {
 function formatFudaSummary(fuda: any): string {
   const id = fuda.displayId ? `${fuda.id} (${fuda.displayId})` : fuda.id;
   const statusColor = statusColors[fuda.status] || colors.reset;
-  const statusLabel = `${statusColor}${fuda.status}${colors.reset}`;
+  // Pad status to 11 chars (length of "in_progress")
+  const statusPadded = fuda.status.padEnd(11);
+  const statusLabel = `${statusColor}${statusPadded}${colors.reset}`;
   const priorityLabel = `${colors.dim}p${fuda.priority}${colors.reset}`;
   return `  ${colors.dim}${id}${colors.reset}  ${statusLabel}  ${priorityLabel}  ${fuda.title}`;
 }
