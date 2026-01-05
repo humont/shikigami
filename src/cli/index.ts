@@ -10,7 +10,7 @@ import { createDepsCommand } from "./commands/deps";
 import { runImport } from "./commands/import";
 import { runList } from "./commands/list";
 import { runUpdate } from "./commands/update";
-import { runLog } from "./commands/log";
+import { runLog, runLogAll } from "./commands/log";
 import { runAgentGuide } from "./commands/agent-guide";
 import { runUpgrade } from "./commands/upgrade";
 import { runLore, runInteractiveLore, formatLoreList, formatLoreEntry } from "./commands/lore";
@@ -269,15 +269,16 @@ program
 
 // Log command
 program
-  .command("log <id>")
-  .description("View audit history for a fuda")
+  .command("log [id]")
+  .description("View audit history (all entries or for a specific fuda)")
   .option("-l, --limit <number>", "Limit results")
   .action(async (id, options) => {
     const isJson = program.opts().json;
-    const result = await runLog({
-      id,
-      limit: options.limit ? parseInt(options.limit, 10) : undefined,
-    });
+    const limit = options.limit ? parseInt(options.limit, 10) : undefined;
+
+    const result = id
+      ? await runLog({ id, limit })
+      : await runLogAll({ limit });
 
     if (result.success) {
       if (isJson) {

@@ -4,7 +4,7 @@ import { join } from "path";
 import { tmpdir } from "os";
 import { Database } from "bun:sqlite";
 import { runInit } from "../../src/cli/commands/init";
-import { runLog } from "../../src/cli/commands/log";
+import { runLog, runLogAll } from "../../src/cli/commands/log";
 import { createFuda, updateFudaStatus } from "../../src/db/fuda";
 import { logAuditEntry, AuditOperation } from "../../src/db/audit";
 import { FudaStatus } from "../../src/types";
@@ -30,11 +30,7 @@ describe("log command", () => {
         title: "Test task",
         description: "Test description",
       });
-      logAuditEntry(db, {
-        fudaId: fuda.id,
-        operation: AuditOperation.CREATE,
-        actor: "cli",
-      });
+      // createFuda now automatically logs a CREATE entry
 
       const result = await runLog({ id: fuda.id, projectRoot: testDir });
 
@@ -49,11 +45,7 @@ describe("log command", () => {
         title: "Test task",
         description: "Test description",
       });
-      logAuditEntry(db, {
-        fudaId: fuda.id,
-        operation: AuditOperation.CREATE,
-        actor: "cli",
-      });
+      // createFuda already logged CREATE
       logAuditEntry(db, {
         fudaId: fuda.id,
         operation: AuditOperation.UPDATE,
@@ -71,7 +63,7 @@ describe("log command", () => {
       expect(result.entries![1].operation).toBe(AuditOperation.CREATE); // Oldest
     });
 
-    test("returns empty array for fuda with no audit entries", async () => {
+    test("returns create entry for fuda (automatic audit)", async () => {
       const fuda = createFuda(db, {
         title: "Test task",
         description: "Test description",
@@ -80,7 +72,8 @@ describe("log command", () => {
       const result = await runLog({ id: fuda.id, projectRoot: testDir });
 
       expect(result.success).toBe(true);
-      expect(result.entries).toEqual([]);
+      expect(result.entries).toHaveLength(1);
+      expect(result.entries![0].operation).toBe(AuditOperation.CREATE);
     });
 
     test("finds fuda by prefix", async () => {
@@ -88,11 +81,7 @@ describe("log command", () => {
         title: "Test task",
         description: "Test description",
       });
-      logAuditEntry(db, {
-        fudaId: fuda.id,
-        operation: AuditOperation.CREATE,
-        actor: "cli",
-      });
+      // createFuda automatically logs CREATE
 
       // Use just the hash portion of the ID
       const prefix = fuda.id.slice(3, 7);
@@ -140,6 +129,68 @@ describe("log command", () => {
 
       try {
         const result = await runLog({ id: "sk-abc123", projectRoot: uninitializedDir });
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain("not initialized");
+      } finally {
+        rmSync(uninitializedDir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  describe("viewing all audit logs (no id)", () => {
+    test("returns all audit entries across all fudas", async () => {
+      const fuda1 = createFuda(db, { title: "Task 1", description: "Desc" });
+      const fuda2 = createFuda(db, { title: "Task 2", description: "Desc" });
+
+      // createFuda now logs automatically (2 entries already)
+      logAuditEntry(db, { fudaId: fuda1.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "pending", newValue: "ready", actor: "agent" });
+
+      const result = await runLogAll({ projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.entries).toHaveLength(3); // 2 creates + 1 update
+    });
+
+    test("returns entries in chronological order (newest first)", async () => {
+      const fuda1 = createFuda(db, { title: "Task 1", description: "Desc" });
+      const fuda2 = createFuda(db, { title: "Task 2", description: "Desc" });
+
+      // createFuda now logs automatically (2 entries already)
+      logAuditEntry(db, { fudaId: fuda1.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "pending", newValue: "ready", actor: "agent" });
+
+      const result = await runLogAll({ projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.entries![0].newValue).toBe("ready"); // Most recent
+      expect(result.entries![2].operation).toBe(AuditOperation.CREATE); // Oldest
+    });
+
+    test("returns empty array when no audit entries exist", async () => {
+      const result = await runLogAll({ projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.entries).toEqual([]);
+    });
+
+    test("respects limit parameter", async () => {
+      const fuda = createFuda(db, { title: "Task", description: "Desc" });
+
+      for (let i = 0; i < 10; i++) {
+        logAuditEntry(db, { fudaId: fuda.id, operation: AuditOperation.UPDATE, field: "status", oldValue: `${i}`, newValue: `${i + 1}`, actor: "cli" });
+      }
+
+      const result = await runLogAll({ projectRoot: testDir, limit: 5 });
+
+      expect(result.success).toBe(true);
+      expect(result.entries).toHaveLength(5);
+    });
+
+    test("returns error when shiki not initialized", async () => {
+      const uninitializedDir = mkdtempSync(join(tmpdir(), "shiki-uninit-"));
+
+      try {
+        const result = await runLogAll({ projectRoot: uninitializedDir });
 
         expect(result.success).toBe(false);
         expect(result.error).toContain("not initialized");

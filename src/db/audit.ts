@@ -25,7 +25,7 @@ export interface LogAuditEntryInput {
   field?: string;
   oldValue?: string;
   newValue?: string;
-  actor: string;
+  actor?: string;
 }
 
 export interface GetAuditLogOptions {
@@ -66,7 +66,7 @@ export function logAuditEntry(db: Database, input: LogAuditEntryInput): void {
       input.field ?? null,
       input.oldValue ?? null,
       input.newValue ?? null,
-      input.actor,
+      input.actor ?? "unknown",
     ]
   );
 }
@@ -80,5 +80,16 @@ export function getAuditLog(
   const rows = db
     .query(`SELECT * FROM audit_log WHERE fuda_id = ? ORDER BY timestamp DESC, id DESC${limitClause}`)
     .all(fudaId) as AuditRow[];
+  return rows.map(rowToAuditEntry);
+}
+
+export function getAllAuditLog(
+  db: Database,
+  options: GetAuditLogOptions = {}
+): AuditEntry[] {
+  const limitClause = options.limit ? ` LIMIT ${options.limit}` : "";
+  const rows = db
+    .query(`SELECT * FROM audit_log ORDER BY timestamp DESC, id DESC${limitClause}`)
+    .all() as AuditRow[];
   return rows.map(rowToAuditEntry);
 }
