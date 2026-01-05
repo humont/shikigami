@@ -9,6 +9,8 @@ import { runStatus } from "./commands/status";
 import { createDepsCommand } from "./commands/deps";
 import { runImport } from "./commands/import";
 import { runList } from "./commands/list";
+import { runUpdate } from "./commands/update";
+import { runLog } from "./commands/log";
 import { output, outputError } from "../utils/output";
 
 const program = new Command();
@@ -108,6 +110,26 @@ program
     }
   });
 
+// Update command
+program
+  .command("update <id>")
+  .description("Update a fuda's status")
+  .requiredOption("-s, --status <status>", "New status (pending, ready, in_progress, in_review, blocked, failed, done)")
+  .action(async (id, options) => {
+    const isJson = program.opts().json;
+    const result = await runUpdate({
+      id,
+      status: options.status,
+    });
+
+    if (result.success) {
+      output(isJson ? result.fuda : `Updated fuda ${result.fuda!.id} to status '${result.fuda!.status}'`, isJson);
+    } else {
+      outputError(result.error!, isJson);
+      process.exit(1);
+    }
+  });
+
 // Ready command
 program
   .command("ready")
@@ -187,18 +209,60 @@ program.addCommand(createDepsCommand(() => program.opts().json));
 
 // Import command
 program
-  .command("import <file>")
-  .description("Import fuda from JSON file")
+  .command("import [file]")
+  .description("Import fuda from JSON file or stdin")
   .option("--dry-run", "Preview without making changes")
+  .option("--stdin", "Read JSON from stdin instead of file")
   .action(async (file, options) => {
     const isJson = program.opts().json;
+
+    let stdinContent: string | undefined;
+    if (options.stdin) {
+      // Read from stdin
+      const chunks: Buffer[] = [];
+      for await (const chunk of process.stdin) {
+        chunks.push(chunk);
+      }
+      stdinContent = Buffer.concat(chunks).toString("utf-8");
+    }
+
     const result = await runImport({
       file,
+      stdin: stdinContent,
       dryRun: options.dryRun,
     });
 
     if (result.success) {
       output(isJson ? result : `Imported ${result.count} fuda`, isJson);
+    } else {
+      outputError(result.error!, isJson);
+      process.exit(1);
+    }
+  });
+
+// Log command
+program
+  .command("log <id>")
+  .description("View audit history for a fuda")
+  .option("-l, --limit <number>", "Limit results")
+  .action(async (id, options) => {
+    const isJson = program.opts().json;
+    const result = await runLog({
+      id,
+      limit: options.limit ? parseInt(options.limit, 10) : undefined,
+    });
+
+    if (result.success) {
+      if (isJson) {
+        output(result.entries, true);
+      } else {
+        if (result.entries!.length === 0) {
+          console.log("No audit entries found.");
+        } else {
+          console.log("Audit history:\n");
+          result.entries!.forEach((e) => console.log(formatAuditEntry(e)));
+        }
+      }
     } else {
       outputError(result.error!, isJson);
       process.exit(1);
@@ -243,6 +307,15 @@ function formatStatus(status: any): string {
     `  Total: ${status.total}`,
   ];
   return lines.join("\n");
+}
+
+function formatAuditEntry(entry: any): string {
+  const timestamp = new Date(entry.timestamp).toISOString();
+  let details = `[${timestamp}] ${entry.operation} by ${entry.actor}`;
+  if (entry.field) {
+    details += ` - ${entry.field}: ${entry.oldValue ?? "(none)"} -> ${entry.newValue ?? "(none)"}`;
+  }
+  return `  ${details}`;
 }
 
 program.parse();

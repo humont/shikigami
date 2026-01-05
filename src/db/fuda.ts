@@ -8,6 +8,7 @@ import {
 } from "../types";
 import { generateId } from "../utils/id";
 import { generateDisplayId } from "../utils/display-id";
+import { logAuditEntry, AuditOperation } from "./audit";
 
 interface FudaRow {
   id: string;
@@ -76,7 +77,7 @@ function getParentDisplayId(db: Database, parentFudaId: string): string | undefi
   return row?.display_id ?? undefined;
 }
 
-export function createFuda(db: Database, input: CreateFudaInput): Fuda {
+export function createFuda(db: Database, input: CreateFudaInput, actor?: string): Fuda {
   const existingIds = getExistingIds(db);
   const id = generateId(existingIds);
 
@@ -99,6 +100,14 @@ export function createFuda(db: Database, input: CreateFudaInput): Fuda {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [id, displayId, input.prdId ?? null, input.title, input.description, spiritType, priority, input.parentFudaId ?? null]
   );
+
+  if (actor) {
+    logAuditEntry(db, {
+      fudaId: id,
+      operation: AuditOperation.CREATE,
+      actor,
+    });
+  }
 
   return getFuda(db, id)!;
 }
@@ -173,45 +182,142 @@ export function getFudaByPrd(db: Database, prdId: string): Fuda[] {
   return rows.map(rowToFuda);
 }
 
-export function updateFudaStatus(db: Database, id: string, status: FudaStatus): void {
+export function updateFudaStatus(db: Database, id: string, status: FudaStatus, actor?: string): void {
+  if (actor) {
+    const fuda = getFuda(db, id, true);
+    if (fuda) {
+      logAuditEntry(db, {
+        fudaId: id,
+        operation: AuditOperation.UPDATE,
+        field: "status",
+        oldValue: fuda.status,
+        newValue: status,
+        actor,
+      });
+    }
+  }
   db.run("UPDATE fuda SET status = ?, updated_at = datetime('now') WHERE id = ?", [status, id]);
 }
 
-export function updateFudaAssignment(db: Database, id: string, spiritId: string | null): void {
+export function updateFudaAssignment(db: Database, id: string, spiritId: string | null, actor?: string): void {
+  if (actor) {
+    const fuda = getFuda(db, id, true);
+    if (fuda) {
+      logAuditEntry(db, {
+        fudaId: id,
+        operation: AuditOperation.UPDATE,
+        field: "assigned_spirit_id",
+        oldValue: fuda.assignedSpiritId ?? undefined,
+        newValue: spiritId ?? undefined,
+        actor,
+      });
+    }
+  }
   db.run("UPDATE fuda SET assigned_spirit_id = ?, updated_at = datetime('now') WHERE id = ?", [spiritId, id]);
 }
 
-export function updateFudaCommit(db: Database, id: string, commitHash: string): void {
+export function updateFudaCommit(db: Database, id: string, commitHash: string, actor?: string): void {
+  if (actor) {
+    const fuda = getFuda(db, id, true);
+    if (fuda) {
+      logAuditEntry(db, {
+        fudaId: id,
+        operation: AuditOperation.UPDATE,
+        field: "output_commit_hash",
+        oldValue: fuda.outputCommitHash ?? undefined,
+        newValue: commitHash,
+        actor,
+      });
+    }
+  }
   db.run("UPDATE fuda SET output_commit_hash = ?, updated_at = datetime('now') WHERE id = ?", [commitHash, id]);
 }
 
-export function updateFudaFailureContext(db: Database, id: string, context: string): void {
+export function updateFudaFailureContext(db: Database, id: string, context: string, actor?: string): void {
+  if (actor) {
+    const fuda = getFuda(db, id, true);
+    if (fuda) {
+      logAuditEntry(db, {
+        fudaId: id,
+        operation: AuditOperation.UPDATE,
+        field: "failure_context",
+        oldValue: fuda.failureContext ?? undefined,
+        newValue: context,
+        actor,
+      });
+    }
+  }
   db.run("UPDATE fuda SET failure_context = ?, updated_at = datetime('now') WHERE id = ?", [context, id]);
 }
 
-export function incrementFudaRetry(db: Database, id: string): number {
+export function incrementFudaRetry(db: Database, id: string, actor?: string): number {
+  const fuda = getFuda(db, id, true);
+  const oldCount = fuda?.retryCount ?? 0;
+
   db.run("UPDATE fuda SET retry_count = retry_count + 1, updated_at = datetime('now') WHERE id = ?", [id]);
   const row = db.query("SELECT retry_count FROM fuda WHERE id = ?").get(id) as { retry_count: number };
+
+  if (actor && fuda) {
+    logAuditEntry(db, {
+      fudaId: id,
+      operation: AuditOperation.UPDATE,
+      field: "retry_count",
+      oldValue: String(oldCount),
+      newValue: String(row.retry_count),
+      actor,
+    });
+  }
+
   return row.retry_count;
 }
 
-export function deleteFuda(db: Database, id: string, options: DeleteFudaOptions = {}): boolean {
+export function deleteFuda(db: Database, id: string, options: DeleteFudaOptions & { actor?: string } = {}): boolean {
   const result = db.run(
     "UPDATE fuda SET deleted_at = datetime('now'), deleted_by = ?, delete_reason = ?, updated_at = datetime('now') WHERE id = ? AND deleted_at IS NULL",
     [options.deletedBy ?? null, options.reason ?? null, id]
   );
+
+  if (result.changes > 0 && options.actor) {
+    logAuditEntry(db, {
+      fudaId: id,
+      operation: AuditOperation.DELETE,
+      actor: options.actor,
+    });
+  }
+
   return result.changes > 0;
 }
 
-export function restoreFuda(db: Database, id: string): boolean {
+export function restoreFuda(db: Database, id: string, actor?: string): boolean {
   const result = db.run(
     "UPDATE fuda SET deleted_at = NULL, deleted_by = NULL, delete_reason = NULL, updated_at = datetime('now') WHERE id = ?",
     [id]
   );
+
+  if (result.changes > 0 && actor) {
+    logAuditEntry(db, {
+      fudaId: id,
+      operation: AuditOperation.UPDATE,
+      field: "deleted_at",
+      oldValue: "(deleted)",
+      newValue: "(restored)",
+      actor,
+    });
+  }
+
   return result.changes > 0;
 }
 
-export function hardDeleteFuda(db: Database, id: string): boolean {
+export function hardDeleteFuda(db: Database, id: string, actor?: string): boolean {
+  if (actor) {
+    logAuditEntry(db, {
+      fudaId: id,
+      operation: AuditOperation.DELETE,
+      field: "hard_delete",
+      actor,
+    });
+  }
+
   const result = db.run("DELETE FROM fuda WHERE id = ?", [id]);
   return result.changes > 0;
 }
