@@ -4,10 +4,20 @@
   "description": "AI agent orchestration for parallel development",
   "module": "src/cli/index.ts",
   "type": "module",
-  "private": true,
   "bin": {
     "shiki": "src/cli/index.ts"
   },
+  "files": [
+    "src",
+    "!src/**/*.test.ts"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/humont/shikigami.git"
+  },
+  "keywords": ["ai", "agent", "orchestration", "cli", "task-management"],
+  "author": "humont",
+  "license": "MIT",
   "scripts": {
     "dev": "bun run src/cli/index.ts",
     "tui": "bun run src/cli/index.ts tui",

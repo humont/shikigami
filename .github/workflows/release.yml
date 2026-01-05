@@ -47,9 +47,37 @@ jobs:
           name: ${{ matrix.artifact }}
           path: dist/${{ matrix.artifact }}
 
+  publish-npm:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
   release:
     needs: build
     runs-on: ubuntu-latest
+
+    outputs:
+      sha256_linux: ${{ steps.checksums.outputs.sha256_linux }}
+      sha256_darwin_arm64: ${{ steps.checksums.outputs.sha256_darwin_arm64 }}
+      sha256_darwin_x64: ${{ steps.checksums.outputs.sha256_darwin_x64 }}
 
     steps:
       - uses: actions/checkout@v4
@@ -61,9 +89,13 @@ jobs:
           merge-multiple: true
 
       - name: Create checksums
+        id: checksums
         run: |
           cd dist
           sha256sum * > checksums.txt
+          echo "sha256_linux=$(sha256sum shiki-linux-x64 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "sha256_darwin_arm64=$(sha256sum shiki-darwin-arm64 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "sha256_darwin_x64=$(sha256sum shiki-darwin-x64 | cut -d' ' -f1)" >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -75,3 +107,18 @@ jobs:
             dist/shiki-darwin-x64
             dist/shiki-windows-x64.exe
             dist/checksums.txt
+
+  update-homebrew:
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update Homebrew formula
+        uses: mislav/bump-homebrew-formula-action@v3
+        with:
+          formula-name: shikigami
+          homebrew-tap: humont/homebrew-shikigami
+          download-url: https://github.com/humont/shikigami/releases/download/${{ github.ref_name }}/shiki-darwin-arm64
+          download-sha256: ${{ needs.release.outputs.sha256_darwin_arm64 }}
+        env:
+          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
