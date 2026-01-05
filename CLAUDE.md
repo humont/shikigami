@@ -13,6 +13,7 @@ Shikigami is an AI agent orchestration system for parallel development. It uses 
   - tests are colocated with the feature they are testing. so you may need to create the directory for the feature if it doesn't exist.
 - This project dogfoods its own CLI. See `.shikigami/AGENT_INSTRUCTIONS.md` for the full workflow guide.
 - If the user asks you to "get to work" or something similar, you should use the CLI to get a task and then work on it.
+- when you've completed a task and marked it as done, create a commit with the changes.
 
 ## Commands
 
