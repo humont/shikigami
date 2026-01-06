@@ -39,7 +39,7 @@ jobs:
         run: bun install
 
       - name: Build standalone binary
-        run: bun build src/cli/index.ts --compile --target=${{ matrix.target }} --outfile dist/${{ matrix.artifact }}
+        run: bun build src/cli/index.ts --compile --target=${{ matrix.target }} --outfile dist/${{ matrix.artifact }} --external react-devtools-core
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -58,8 +58,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: '22'
+
+      - name: Update npm for OIDC support
+        run: npm install -g npm@latest
 
       - uses: oven-sh/setup-bun@v2
         with:
