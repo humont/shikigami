@@ -20,6 +20,7 @@ export interface InitResult {
   agentDocsModified?: string[];
   agentDocsCreated?: string[];
   agentDocsSkipped?: string[];
+  gitignoreModified?: boolean;
 }
 
 const SHIKIGAMI_SECTION = `
@@ -67,6 +68,22 @@ export async function runInit(options: InitOptions = {}): Promise<InitResult> {
     const instructionsPath = join(shikigamiDir, "AGENT_INSTRUCTIONS.md");
     writeFileSync(instructionsPath, AGENT_INSTRUCTIONS_CONTENT);
 
+    // Handle .gitignore
+    let gitignoreModified = false;
+    const gitignorePath = join(projectRoot, ".gitignore");
+    if (existsSync(gitignorePath)) {
+      const content = readFileSync(gitignorePath, "utf-8");
+      // Check if .shikigami is already in the gitignore (with or without trailing slash)
+      if (!content.includes(".shikigami")) {
+        const gitignoreSection = `# Shikigami - AI agent task orchestration
+${SHIKIGAMI_DIR}/
+`;
+        const separator = content.endsWith("\n") ? "\n" : "\n\n";
+        writeFileSync(gitignorePath, content + separator + gitignoreSection);
+        gitignoreModified = true;
+      }
+    }
+
     // Handle agent docs (AGENTS.md, CLAUDE.md)
     const agentDocsModified: string[] = [];
     const agentDocsCreated: string[] = [];
@@ -108,6 +125,7 @@ export async function runInit(options: InitOptions = {}): Promise<InitResult> {
       ...(agentDocsModified.length > 0 && { agentDocsModified }),
       ...(agentDocsCreated.length > 0 && { agentDocsCreated }),
       ...(agentDocsSkipped.length > 0 && { agentDocsSkipped }),
+      ...(gitignoreModified && { gitignoreModified }),
     };
   } catch (error) {
     return {

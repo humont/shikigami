@@ -311,4 +311,88 @@ Key commands:
       });
     });
   });
+
+  describe(".gitignore handling", () => {
+    test("appends .shikigami/ to existing .gitignore with header comment", async () => {
+      const gitignorePath = join(testDir, ".gitignore");
+      writeFileSync(gitignorePath, "node_modules/\n.env\n");
+
+      await runInit({ projectRoot: testDir });
+
+      const content = readFileSync(gitignorePath, "utf-8");
+      expect(content).toContain("node_modules/");
+      expect(content).toContain("# Shikigami");
+      expect(content).toContain(".shikigami/");
+    });
+
+    test("does not create .gitignore if it does not exist", async () => {
+      const gitignorePath = join(testDir, ".gitignore");
+      expect(existsSync(gitignorePath)).toBe(false);
+
+      await runInit({ projectRoot: testDir });
+
+      expect(existsSync(gitignorePath)).toBe(false);
+    });
+
+    test("skips .gitignore if it already contains .shikigami", async () => {
+      const gitignorePath = join(testDir, ".gitignore");
+      const originalContent = "node_modules/\n.shikigami/\n";
+      writeFileSync(gitignorePath, originalContent);
+
+      await runInit({ projectRoot: testDir });
+
+      const content = readFileSync(gitignorePath, "utf-8");
+      expect(content).toBe(originalContent);
+    });
+
+    test("handles .gitignore with .shikigami without trailing slash", async () => {
+      const gitignorePath = join(testDir, ".gitignore");
+      const originalContent = "node_modules/\n.shikigami\n";
+      writeFileSync(gitignorePath, originalContent);
+
+      await runInit({ projectRoot: testDir });
+
+      const content = readFileSync(gitignorePath, "utf-8");
+      expect(content).toBe(originalContent);
+    });
+
+    test("reports gitignoreModified in result", async () => {
+      const gitignorePath = join(testDir, ".gitignore");
+      writeFileSync(gitignorePath, "node_modules/\n");
+
+      const result = await runInit({ projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.gitignoreModified).toBe(true);
+    });
+
+    test("does not report gitignoreModified if .gitignore does not exist", async () => {
+      const result = await runInit({ projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.gitignoreModified).toBeUndefined();
+    });
+
+    test("does not report gitignoreModified if already contains .shikigami", async () => {
+      const gitignorePath = join(testDir, ".gitignore");
+      writeFileSync(gitignorePath, ".shikigami/\n");
+
+      const result = await runInit({ projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.gitignoreModified).toBeUndefined();
+    });
+
+    test("adds newline before .shikigami if .gitignore does not end with newline", async () => {
+      const gitignorePath = join(testDir, ".gitignore");
+      writeFileSync(gitignorePath, "node_modules/");
+
+      await runInit({ projectRoot: testDir });
+
+      const content = readFileSync(gitignorePath, "utf-8");
+      expect(content).toContain("node_modules/\n");
+      expect(content).toContain("# Shikigami");
+      expect(content).toContain(".shikigami/");
+    });
+  });
 });
