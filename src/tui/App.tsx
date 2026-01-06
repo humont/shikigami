@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Box, Text, useInput } from "ink";
 import { TopBar, type Tab } from "./components/TopBar";
 import { BottomBar, type CommandHint } from "./components/BottomBar";
+import { FudaList } from "./components/FudaList";
+import { useFudaList } from "./hooks/useFudaList";
 
 type TabId = "fuda" | "log";
 
@@ -31,8 +33,10 @@ export function App({
   onTabChange,
 }: AppProps) {
   const [internalActiveTab, setInternalActiveTab] = useState<TabId>(initialTab);
+  const [selectedFudaIndex, setSelectedFudaIndex] = useState(0);
 
   const activeTab = controlledActiveTab ?? internalActiveTab;
+  const { fudas, loading, error } = useFudaList({ all: true });
 
   const hints: CommandHint[] = [
     { key: "q", description: "Quit" },
@@ -62,7 +66,21 @@ export function App({
       <TopBar tabs={TABS} activeTab={activeTab} />
       <Box flexDirection="row" flexGrow={1}>
         <Box flexDirection="column" flexGrow={1}>
-          {activeTab === "fuda" && <Text>Fuda View</Text>}
+          {activeTab === "fuda" && (
+            loading ? (
+              <Text>Loading...</Text>
+            ) : error ? (
+              <Text color="red">Error: {error}</Text>
+            ) : fudas.length === 0 ? (
+              <Text dimColor>No fuda found</Text>
+            ) : (
+              <FudaList
+                fudas={fudas}
+                selectedIndex={selectedFudaIndex}
+                onSelect={setSelectedFudaIndex}
+              />
+            )
+          )}
           {activeTab === "log" && <Text>Log View</Text>}
         </Box>
       </Box>

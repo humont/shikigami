@@ -1,9 +1,12 @@
-import { describe, expect, test, mock, beforeEach, afterEach, spyOn } from "bun:test";
+import { describe, expect, test, mock, beforeEach, afterEach, beforeAll, afterAll, spyOn } from "bun:test";
 import React from "react";
 import { render } from "ink-testing-library";
 import { App } from "../../src/tui/App";
 import * as listModule from "../../src/cli/commands/list";
 import { type Fuda, FudaStatus, SpiritType } from "../../src/types";
+
+// Global mock for runList to prevent real API calls during all tests
+let globalRunListSpy: ReturnType<typeof spyOn>;
 
 // Mock fuda data for testing
 const mockFudas: Fuda[] = [
@@ -70,6 +73,18 @@ const mockFudas: Fuda[] = [
 ];
 
 describe("App component", () => {
+  // Set up global mock before all tests to prevent real API calls
+  beforeAll(() => {
+    globalRunListSpy = spyOn(listModule, "runList").mockResolvedValue({
+      success: true,
+      fudas: [],
+    });
+  });
+
+  afterAll(() => {
+    globalRunListSpy.mockRestore();
+  });
+
   describe("renders layout", () => {
     test("renders TopBar with tabs", () => {
       const { lastFrame } = render(<App />);
@@ -362,24 +377,27 @@ describe("App component", () => {
   });
 
   describe("Fuda view", () => {
-    let runListSpy: ReturnType<typeof spyOn>;
-
     beforeEach(() => {
-      runListSpy = spyOn(listModule, "runList").mockResolvedValue({
+      // Update the global mock to return mockFudas for Fuda view tests
+      globalRunListSpy.mockResolvedValue({
         success: true,
         fudas: mockFudas,
       });
     });
 
     afterEach(() => {
-      runListSpy.mockRestore();
+      // Reset to empty fudas for other tests
+      globalRunListSpy.mockResolvedValue({
+        success: true,
+        fudas: [],
+      });
     });
 
     test("renders FudaList when on Fuda tab", async () => {
       const { lastFrame, unmount } = render(<App />);
 
       // Wait for async data loading
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const output = lastFrame() || "";
       // Should show fuda titles from the list
@@ -395,13 +413,13 @@ describe("App component", () => {
       // Wait for async effect
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      expect(runListSpy).toHaveBeenCalled();
+      expect(globalRunListSpy).toHaveBeenCalled();
       unmount();
     });
 
     test("shows loading state while fetching fuda", async () => {
       // Make runList hang to simulate loading
-      runListSpy.mockImplementation(
+      globalRunListSpy.mockImplementation(
         () => new Promise((resolve) => setTimeout(() => resolve({ success: true, fudas: [] }), 500))
       );
 
@@ -414,7 +432,7 @@ describe("App component", () => {
     });
 
     test("shows error state when fetching fails", async () => {
-      runListSpy.mockResolvedValue({
+      globalRunListSpy.mockResolvedValue({
         success: false,
         error: "Database connection failed",
       });
@@ -422,7 +440,7 @@ describe("App component", () => {
       const { lastFrame, unmount } = render(<App />);
 
       // Wait for async effect
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const output = lastFrame() || "";
       expect(output).toContain("Error");
@@ -432,7 +450,7 @@ describe("App component", () => {
     test("displays fuda IDs in the list", async () => {
       const { lastFrame, unmount } = render(<App />);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const output = lastFrame() || "";
       expect(output).toContain("sk-test1");
@@ -444,7 +462,7 @@ describe("App component", () => {
     test("displays fuda statuses in the list", async () => {
       const { lastFrame, unmount } = render(<App />);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const output = lastFrame() || "";
       expect(output).toContain("pending");
@@ -456,7 +474,7 @@ describe("App component", () => {
     test("supports keyboard navigation with j/k keys", async () => {
       const { stdin, lastFrame, unmount } = render(<App />);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Initial state - first item selected
       const initialOutput = lastFrame() || "";
@@ -474,7 +492,7 @@ describe("App component", () => {
     test("shows selection indicator for current fuda", async () => {
       const { lastFrame, unmount } = render(<App />);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const output = lastFrame() || "";
       // Should show selection indicator (>) for the first item
@@ -485,10 +503,13 @@ describe("App component", () => {
     test("does not show fuda list when on Log tab", async () => {
       const { stdin, lastFrame, unmount } = render(<App />);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Switch to Log tab
       stdin.write("2");
+
+      // Wait for re-render after tab switch
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const output = lastFrame() || "";
       // Should not show fuda content on Log tab
@@ -498,14 +519,14 @@ describe("App component", () => {
     });
 
     test("shows empty state when no fudas exist", async () => {
-      runListSpy.mockResolvedValue({
+      globalRunListSpy.mockResolvedValue({
         success: true,
         fudas: [],
       });
 
       const { lastFrame, unmount } = render(<App />);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const output = lastFrame() || "";
       // Should show some indication that there are no fudas
@@ -516,7 +537,7 @@ describe("App component", () => {
     test("displays fuda priorities", async () => {
       const { lastFrame, unmount } = render(<App />);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const output = lastFrame() || "";
       expect(output).toContain("p5");
