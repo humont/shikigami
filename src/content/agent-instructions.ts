@@ -30,18 +30,7 @@ A **fuda** is a task unit containing:
 - **description**: Detailed requirements and context
 - **status**: Current state (\`pending\`, \`ready\`, \`in_progress\`, \`in_review\`, \`blocked\`, \`failed\`, \`done\`)
 - **priority**: Numeric priority (higher = more important)
-- **spiritType**: Agent type suited for the task (\`shikigami\`, \`tengu\`, \`kitsune\`)
 
-### Spirit Types
-- **shikigami**: General-purpose agents for standard coding tasks (default)
-- **tengu**: Specialized agents for architecture, complex refactoring, code review
-- **kitsune**: Agents for tricky problems, creative solutions, debugging
-
-Spirit types are hints for task routing. When picking tasks, filter by your capabilities:
-\`\`\`bash
-# Most agents should work on shikigami tasks
-shiki list --status ready --json | jq '.[] | select(.spiritType == "shikigami")'
-\`\`\`
 
 ### Dependencies
 Fuda can have dependencies that control execution order:
@@ -72,12 +61,6 @@ When an agent picks up a task, update its status to \`in_progress\`:
 \`\`\`bash
 # Quick shortcut
 shiki start sk-a1b2c3 --json
-
-# Or identify yourself
-shiki start sk-a1b2c3 --assigned-spirit-id "claude-agent-1" --json
-
-# Long form (still works)
-shiki update sk-a1b2c3 --status in_progress --json
 \`\`\`
 
 ### 4. Work on the Task
@@ -241,149 +224,148 @@ export interface AgentGuideStructured {
 export function getStructuredContent(): AgentGuideStructured {
   return {
     coreConcepts: {
-      fuda:
-        "A task unit containing title, description, status, priority, and spiritType",
-      spiritTypes: ["shikigami", "tengu", "kitsune"],
-      dependencyTypes: ["blocks", "parent-child", "related", "discovered-from"],
+      fuda: 'A task unit containing title, description, status, priority, and spiritType',
+      spiritTypes: ['shikigami', 'tengu', 'kitsune'],
+      dependencyTypes: ['blocks', 'parent-child', 'related', 'discovered-from'],
       statuses: [
-        "pending",
-        "ready",
-        "in_progress",
-        "in_review",
-        "blocked",
-        "failed",
-        "done",
+        'pending',
+        'ready',
+        'in_progress',
+        'in_review',
+        'blocked',
+        'failed',
+        'done',
       ],
     },
     workflow: [
       {
         step: 1,
-        title: "Initialize the Project",
-        description: "Creates a .shikigami/shiki.db SQLite database in your project",
-        command: "shiki init",
+        title: 'Initialize the Project',
+        description:
+          'Creates a .shikigami/shiki.db SQLite database in your project',
+        command: 'shiki init',
       },
       {
         step: 2,
         title: "Check What's Ready to Work On",
         description:
-          "Returns tasks with status ready, no unfinished blocking dependencies, ordered by priority",
-        command: "shiki ready --json",
+          'Returns tasks with status ready, no unfinished blocking dependencies, ordered by priority',
+        command: 'shiki ready --json',
       },
       {
         step: 3,
-        title: "Claim a Task",
-        description: "Update task status to in_progress",
-        command: "shiki start <id> --json",
+        title: 'Claim a Task',
+        description: 'Update task status to in_progress',
+        command: 'shiki start <id> --json',
       },
       {
         step: 4,
-        title: "Work on the Task",
+        title: 'Work on the Task',
         description:
-          "Read task description, implement changes, test, create commit",
+          'Read task description, implement changes, test, create commit',
       },
       {
         step: 5,
-        title: "Complete or Fail the Task",
-        description: "Update status to done or failed",
-        command: "shiki finish <id> --json",
+        title: 'Complete or Fail the Task',
+        description: 'Update status to done or failed',
+        command: 'shiki finish <id> --json',
       },
       {
         step: 6,
-        title: "Check for Newly Ready Tasks",
-        description:
-          "Dependent tasks may become unblocked after completion",
-        command: "shiki ready --json",
+        title: 'Check for Newly Ready Tasks',
+        description: 'Dependent tasks may become unblocked after completion',
+        command: 'shiki ready --json',
       },
     ],
     cliReference: {
       commands: [
         {
-          name: "shiki init",
-          description: "Initialize shiki in the current project",
-          example: "shiki init",
+          name: 'shiki init',
+          description: 'Initialize shiki in the current project',
+          example: 'shiki init',
         },
         {
-          name: "shiki add",
-          description: "Create a new fuda",
+          name: 'shiki add',
+          description: 'Create a new fuda',
           example:
             'shiki add -t "Implement feature X" -d "Description" --priority 5 --json',
         },
         {
-          name: "shiki import --stdin",
+          name: 'shiki import --stdin',
           description:
-            "Batch import fuda from stdin. Use $0/$1/$N to reference array items as dependencies.",
+            'Batch import fuda from stdin. Use $0/$1/$N to reference array items as dependencies.',
           example:
             'echo \'[{"title": "A", "description": "First"}, {"title": "B", "description": "Second", "dependencies": [{"id": "$0"}]}]\' | shiki import --stdin --json',
         },
         {
-          name: "shiki list",
-          description: "List all fuda with optional filters",
-          example: "shiki list --status ready --json",
+          name: 'shiki list',
+          description: 'List all fuda with optional filters',
+          example: 'shiki list --status ready --json',
         },
         {
-          name: "shiki show",
-          description: "Show fuda details",
-          example: "shiki show sk-a1b2c3 --json",
+          name: 'shiki show',
+          description: 'Show fuda details',
+          example: 'shiki show sk-a1b2c3 --json',
         },
         {
-          name: "shiki ready",
-          description: "List fuda ready to work on",
-          example: "shiki ready --json",
+          name: 'shiki ready',
+          description: 'List fuda ready to work on',
+          example: 'shiki ready --json',
         },
         {
-          name: "shiki update",
+          name: 'shiki update',
           description: "Update a fuda's status or assignment",
           example:
-            "shiki update sk-a1b2c3 --status in_progress --assigned-spirit-id agent-1 --json",
+            'shiki update sk-a1b2c3 --status in_progress --assigned-spirit-id agent-1 --json',
         },
         {
-          name: "shiki start",
-          description: "Start working on a fuda",
-          example: "shiki start sk-a1b2c3 [--assigned-spirit-id <id>] --json",
+          name: 'shiki start',
+          description: 'Start working on a fuda',
+          example: 'shiki start sk-a1b2c3 [--assigned-spirit-id <id>] --json',
         },
         {
-          name: "shiki finish",
-          description: "Mark a fuda as finished",
-          example: "shiki finish sk-a1b2c3 --json",
+          name: 'shiki finish',
+          description: 'Mark a fuda as finished',
+          example: 'shiki finish sk-a1b2c3 --json',
         },
         {
-          name: "shiki fail",
-          description: "Mark a fuda as failed",
-          example: "shiki fail sk-a1b2c3 --json",
+          name: 'shiki fail',
+          description: 'Mark a fuda as failed',
+          example: 'shiki fail sk-a1b2c3 --json',
         },
         {
-          name: "shiki deps tree",
-          description: "View full dependency tree",
-          example: "shiki deps tree sk-a1b2c3 --json",
+          name: 'shiki deps tree',
+          description: 'View full dependency tree',
+          example: 'shiki deps tree sk-a1b2c3 --json',
         },
         {
-          name: "shiki deps blocked",
+          name: 'shiki deps blocked',
           description: "See what's blocking a task",
-          example: "shiki deps blocked sk-a1b2c3 --json",
+          example: 'shiki deps blocked sk-a1b2c3 --json',
         },
         {
-          name: "shiki status",
-          description: "Show current system status",
-          example: "shiki status --json",
+          name: 'shiki status',
+          description: 'Show current system status',
+          example: 'shiki status --json',
         },
         {
-          name: "shiki agent-guide",
-          description: "Show this workflow guide",
-          example: "shiki agent-guide --json",
+          name: 'shiki agent-guide',
+          description: 'Show this workflow guide',
+          example: 'shiki agent-guide --json',
         },
       ],
     },
     bestPractices: [
-      "Always use --json flag for programmatic access",
-      "Check dependencies before starting work to understand context",
-      "Record failure context when tasks fail to help with retries",
-      "Discover sub-tasks during implementation and add them with proper dependencies",
-      "Use priorities to ensure critical path items get worked on first",
-      "Match spirit types to agent capabilities for optimal task assignment",
+      'Always use --json flag for programmatic access',
+      'Check dependencies before starting work to understand context',
+      'Record failure context when tasks fail to help with retries',
+      'Discover sub-tasks during implementation and add them with proper dependencies',
+      'Use priorities to ensure critical path items get worked on first',
+      'Match spirit types to agent capabilities for optimal task assignment',
     ],
     idFormats: {
-      internal: "sk-{4-6 char alphanumeric} (e.g., sk-a1b2c3)",
-      display: "{PRD-ID}/{sequence} (e.g., PRD-001/1.2 for nested tasks)",
+      internal: 'sk-{4-6 char alphanumeric} (e.g., sk-a1b2c3)',
+      display: '{PRD-ID}/{sequence} (e.g., PRD-001/1.2 for nested tasks)',
     },
   };
 }
