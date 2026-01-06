@@ -38,7 +38,7 @@ describe("add command", () => {
       expect(result.fuda!.description).toBe("Test description");
     });
 
-    test("creates fuda with default status of pending", async () => {
+    test("creates fuda with ready status when no blockers", async () => {
       const result = await runAdd({
         title: "New task",
         description: "New description",
@@ -46,6 +46,25 @@ describe("add command", () => {
       });
 
       expect(result.success).toBe(true);
+      // Fuda without blocking dependencies are auto-promoted to ready
+      expect(result.fuda!.status).toBe(FudaStatus.READY);
+    });
+
+    test("creates fuda with pending status when has blockers", async () => {
+      const blocker = createFuda(db, {
+        title: "Blocker task",
+        description: "Must complete first",
+      });
+
+      const result = await runAdd({
+        title: "Blocked task",
+        description: "Has blocker",
+        dependsOn: [blocker.id],
+        projectRoot: testDir,
+      });
+
+      expect(result.success).toBe(true);
+      // Fuda with blocking dependencies stay pending
       expect(result.fuda!.status).toBe(FudaStatus.PENDING);
     });
 
