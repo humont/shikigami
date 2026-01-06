@@ -2,7 +2,7 @@ import { Database } from "bun:sqlite";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { createFuda } from "../../db/fuda";
-import { addFudaDependency } from "../../db/dependencies";
+import { addFudaDependency, updateReadyFuda } from "../../db/dependencies";
 import { type SpiritType, type DependencyType } from "../../types";
 import { SHIKIGAMI_DIR, DB_FILENAME } from "../../config/paths";
 
@@ -149,6 +149,9 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
         }
       }
     }
+
+    // Auto-promote fuda to ready if no blocking dependencies
+    updateReadyFuda(db);
 
     db.close();
 

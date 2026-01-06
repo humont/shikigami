@@ -1,8 +1,8 @@
 import { Database } from "bun:sqlite";
 import { existsSync } from "fs";
 import { join } from "path";
-import { createFuda, findFudaByPrefix } from "../../db/fuda";
-import { addFudaDependency } from "../../db/dependencies";
+import { createFuda, findFudaByPrefix, getFuda } from "../../db/fuda";
+import { addFudaDependency, updateReadyFuda } from "../../db/dependencies";
 import { type Fuda, type SpiritType, type DependencyType, FudaStatus } from "../../types";
 import { SHIKIGAMI_DIR, DB_FILENAME } from "../../config/paths";
 
@@ -84,11 +84,17 @@ export async function runAdd(options: AddOptions): Promise<AddResult> {
       }
     }
 
+    // Auto-promote fuda to ready if no blocking dependencies
+    updateReadyFuda(db);
+
+    // Re-fetch to get updated status
+    const updatedFuda = getFuda(db, fuda.id);
+
     db.close();
 
     return {
       success: true,
-      fuda,
+      fuda: updatedFuda ?? fuda,
     };
   } catch (error) {
     db.close();
