@@ -101,7 +101,8 @@ describe("StatusPicker component", () => {
       stdin.write("j");
       stdin.write("\r");
 
-      expect(receivedStatus).toBe(FudaStatus.READY);
+      expect(receivedStatus).not.toBeNull();
+      expect(receivedStatus!).toBe(FudaStatus.READY);
     });
 
     test("k key moves selection up (vim-style)", () => {
@@ -124,7 +125,8 @@ describe("StatusPicker component", () => {
       stdin.write("k");
       stdin.write("\r");
 
-      expect(receivedStatus).toBe(FudaStatus.READY);
+      expect(receivedStatus).not.toBeNull();
+      expect(receivedStatus!).toBe(FudaStatus.READY);
     });
 
     test("Enter key confirms selection", () => {
@@ -221,7 +223,8 @@ describe("StatusPicker component", () => {
       stdin.write("\x1B[B"); // Down to ready
       stdin.write("\r"); // Enter
 
-      expect(receivedStatus).toBe(FudaStatus.READY);
+      expect(receivedStatus).not.toBeNull();
+      expect(receivedStatus!).toBe(FudaStatus.READY);
     });
 
     test("passes fudaId to callback", () => {
@@ -240,7 +243,8 @@ describe("StatusPicker component", () => {
 
       stdin.write("\r"); // Enter
 
-      expect(receivedFudaId).toBe("sk-test123");
+      expect(receivedFudaId).not.toBeNull();
+      expect(receivedFudaId!).toBe("sk-test123");
     });
 
     test("does not call onStatusChange on navigation without confirmation", () => {
@@ -284,7 +288,8 @@ describe("StatusPicker component", () => {
       stdin.write("\x1B[B");
       stdin.write("\r");
 
-      expect(receivedStatus).toBe(FudaStatus.IN_PROGRESS);
+      expect(receivedStatus).not.toBeNull();
+      expect(receivedStatus!).toBe(FudaStatus.IN_PROGRESS);
     });
 
     test("handles onCancel callback when Escape is pressed", () => {
@@ -354,7 +359,7 @@ describe("StatusPicker component", () => {
 
       // Select current status (pending)
       stdin.write("\r");
-      const firstSelection = receivedStatus;
+      const firstSelection: FudaStatus | null = receivedStatus;
 
       // Reset and select a different status
       receivedStatus = null;
@@ -369,8 +374,10 @@ describe("StatusPicker component", () => {
       stdin2.write("\r");
 
       // Should have selected different statuses
-      expect(firstSelection).toBe(FudaStatus.PENDING);
-      expect(receivedStatus).toBe(FudaStatus.READY);
+      expect(firstSelection).not.toBeNull();
+      expect(firstSelection!).toBe(FudaStatus.PENDING);
+      expect(receivedStatus).not.toBeNull();
+      expect(receivedStatus!).toBe(FudaStatus.READY);
     });
   });
 

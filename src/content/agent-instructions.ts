@@ -120,10 +120,21 @@ shiki add \\
 \`\`\`
 
 ### Batch Import via Stdin
-For adding multiple tasks at once without temp files:
+For adding multiple tasks at once with dependencies:
 \`\`\`bash
-echo '[{"title": "Task 1", "description": "First"}, {"title": "Task 2", "description": "Second"}]' | shiki import --stdin --json
+echo '[
+  {"title": "Task 1", "description": "First"},
+  {"title": "Task 2", "description": "Second", "dependencies": [{"id": "$0", "type": "blocks"}]},
+  {"title": "Task 3", "description": "Third", "dependencies": [{"id": "$1"}, {"id": "sk-existing"}]}
+]' | shiki import --stdin --json
 \`\`\`
+
+**Dependency syntax:**
+- \`$0\`, \`$1\`, \`$N\`: Reference items by array index (resolved to real IDs on import)
+- \`sk-xxxx\`: Reference existing fuda by ID
+- \`type\`: \`blocks\` (default), \`parent-child\`, \`related\`, \`discovered-from\`
+
+**Optional fields:** \`spiritType\`, \`priority\`, \`prdId\`, \`parentFudaId\`
 
 ### Listing Tasks
 \`\`\`bash
@@ -299,9 +310,10 @@ export function getStructuredContent(): AgentGuideStructured {
         },
         {
           name: "shiki import --stdin",
-          description: "Batch import fuda from stdin",
+          description:
+            "Batch import fuda from stdin. Use $0/$1/$N to reference array items as dependencies.",
           example:
-            'echo \'[{"title": "Task", "description": "Desc"}]\' | shiki import --stdin --json',
+            'echo \'[{"title": "A", "description": "First"}, {"title": "B", "description": "Second", "dependencies": [{"id": "$0"}]}]\' | shiki import --stdin --json',
         },
         {
           name: "shiki list",
