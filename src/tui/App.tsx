@@ -3,7 +3,9 @@ import { Box, Text, useInput } from "ink";
 import { TopBar, type Tab } from "./components/TopBar";
 import { BottomBar, type CommandHint } from "./components/BottomBar";
 import { FudaList } from "./components/FudaList";
+import { LogView } from "./components/LogView";
 import { useFudaList } from "./hooks/useFudaList";
+import { useAuditLog } from "./hooks/useAuditLog";
 
 type TabId = "fuda" | "log";
 
@@ -34,9 +36,11 @@ export function App({
 }: AppProps) {
   const [internalActiveTab, setInternalActiveTab] = useState<TabId>(initialTab);
   const [selectedFudaIndex, setSelectedFudaIndex] = useState(0);
+  const [selectedLogIndex, setSelectedLogIndex] = useState(0);
 
   const activeTab = controlledActiveTab ?? internalActiveTab;
   const { fudas, loading, error } = useFudaList({ all: true });
+  const { entries: logEntries, loading: logLoading, error: logError } = useAuditLog();
 
   const hints: CommandHint[] = [
     { key: "q", description: "Quit" },
@@ -81,7 +85,21 @@ export function App({
               />
             )
           )}
-          {activeTab === "log" && <Text>Log View</Text>}
+          {activeTab === "log" && (
+            logLoading ? (
+              <Text>Loading...</Text>
+            ) : logError ? (
+              <Text color="red">Error: {logError}</Text>
+            ) : logEntries.length === 0 ? (
+              <Text dimColor>No audit entries</Text>
+            ) : (
+              <LogView
+                entries={logEntries}
+                selectedIndex={selectedLogIndex}
+                onSelect={setSelectedLogIndex}
+              />
+            )
+          )}
         </Box>
       </Box>
       <BottomBar hints={hints} view={activeTab} />
