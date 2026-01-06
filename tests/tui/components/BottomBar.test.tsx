@@ -67,41 +67,41 @@ describe("BottomBar component", () => {
   });
 
   describe("context-aware hints", () => {
-    const listViewHints: CommandHint[] = [
+    const fudaViewHints: CommandHint[] = [
       { key: "j/k", description: "Navigate" },
       { key: "Enter", description: "View details" },
       { key: "s", description: "Start fuda" },
     ];
 
-    const detailsViewHints: CommandHint[] = [
-      { key: "Esc", description: "Back to list" },
-      { key: "e", description: "Edit" },
-      { key: "d", description: "Mark done" },
+    const logViewHints: CommandHint[] = [
+      { key: "j/k", description: "Navigate" },
+      { key: "Enter", description: "View log entry" },
+      { key: "f", description: "Filter" },
     ];
 
     test("renders different hints based on view context", () => {
-      const { lastFrame: listFrame } = render(
-        <BottomBar hints={listViewHints} view="list" />
+      const { lastFrame: fudaFrame } = render(
+        <BottomBar hints={fudaViewHints} view="fuda" />
       );
-      const { lastFrame: detailsFrame } = render(
-        <BottomBar hints={detailsViewHints} view="details" />
+      const { lastFrame: logFrame } = render(
+        <BottomBar hints={logViewHints} view="log" />
       );
 
-      expect(listFrame()).toContain("Navigate");
-      expect(listFrame()).toContain("View details");
-      expect(listFrame()).not.toContain("Back to list");
+      expect(fudaFrame()).toContain("Navigate");
+      expect(fudaFrame()).toContain("View details");
+      expect(fudaFrame()).toContain("Start fuda");
 
-      expect(detailsFrame()).toContain("Back to list");
-      expect(detailsFrame()).toContain("Edit");
-      expect(detailsFrame()).not.toContain("Navigate");
+      expect(logFrame()).toContain("Navigate");
+      expect(logFrame()).toContain("View log entry");
+      expect(logFrame()).toContain("Filter");
     });
 
     test("updates hints when view changes", () => {
       const { lastFrame: frame1 } = render(
-        <BottomBar hints={listViewHints} view="list" />
+        <BottomBar hints={fudaViewHints} view="fuda" />
       );
       const { lastFrame: frame2 } = render(
-        <BottomBar hints={detailsViewHints} view="details" />
+        <BottomBar hints={logViewHints} view="log" />
       );
 
       // The outputs should be different when different views are active
@@ -118,7 +118,7 @@ describe("BottomBar component", () => {
     });
 
     test("handles all supported view contexts", () => {
-      const views: ViewContext[] = ["list", "details", "log"];
+      const views: ViewContext[] = ["fuda", "log"];
 
       views.forEach((view) => {
         const { lastFrame } = render(<BottomBar hints={mockHints} view={view} />);
