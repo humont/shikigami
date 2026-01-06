@@ -4,21 +4,19 @@ import { render } from "ink-testing-library";
 import { TopBar, type Tab } from "../../../src/tui/components/TopBar";
 
 const mockTabs: Tab[] = [
-  { id: "list", label: "List", shortcut: "1" },
-  { id: "details", label: "Details", shortcut: "2" },
-  { id: "log", label: "Log", shortcut: "3" },
+  { id: "fuda", label: "Fuda", shortcut: "1" },
+  { id: "log", label: "Log", shortcut: "2" },
 ];
 
 describe("TopBar component", () => {
   describe("renders tabs", () => {
     test("renders all tab labels", () => {
       const { lastFrame } = render(
-        <TopBar tabs={mockTabs} activeTab="list" />
+        <TopBar tabs={mockTabs} activeTab="fuda" />
       );
 
       const output = lastFrame();
-      expect(output).toContain("List");
-      expect(output).toContain("Details");
+      expect(output).toContain("Fuda");
       expect(output).toContain("Log");
     });
 
@@ -34,26 +32,24 @@ describe("TopBar component", () => {
 
     test("renders tabs in provided order", () => {
       const { lastFrame } = render(
-        <TopBar tabs={mockTabs} activeTab="list" />
+        <TopBar tabs={mockTabs} activeTab="fuda" />
       );
 
       const output = lastFrame() || "";
-      const listIndex = output.indexOf("List");
-      const detailsIndex = output.indexOf("Details");
+      const fudaIndex = output.indexOf("Fuda");
       const logIndex = output.indexOf("Log");
 
-      expect(listIndex).toBeLessThan(detailsIndex);
-      expect(detailsIndex).toBeLessThan(logIndex);
+      expect(fudaIndex).toBeLessThan(logIndex);
     });
   });
 
   describe("active tab highlighting", () => {
     test("highlights the active tab differently", () => {
       const { lastFrame: frame1 } = render(
-        <TopBar tabs={mockTabs} activeTab="list" />
+        <TopBar tabs={mockTabs} activeTab="fuda" />
       );
       const { lastFrame: frame2 } = render(
-        <TopBar tabs={mockTabs} activeTab="details" />
+        <TopBar tabs={mockTabs} activeTab="log" />
       );
 
       // The outputs should be different when different tabs are active
@@ -62,7 +58,7 @@ describe("TopBar component", () => {
 
     test("only one tab appears active at a time", () => {
       const { lastFrame } = render(
-        <TopBar tabs={mockTabs} activeTab="details" />
+        <TopBar tabs={mockTabs} activeTab="log" />
       );
 
       const output = lastFrame() || "";
@@ -78,8 +74,7 @@ describe("TopBar component", () => {
 
       // Should still render without crashing
       const output = lastFrame();
-      expect(output).toContain("List");
-      expect(output).toContain("Details");
+      expect(output).toContain("Fuda");
       expect(output).toContain("Log");
     });
   });
@@ -87,18 +82,17 @@ describe("TopBar component", () => {
   describe("keyboard shortcut display", () => {
     test("displays keyboard shortcuts for each tab", () => {
       const { lastFrame } = render(
-        <TopBar tabs={mockTabs} activeTab="list" />
+        <TopBar tabs={mockTabs} activeTab="fuda" />
       );
 
       const output = lastFrame();
       expect(output).toContain("1");
       expect(output).toContain("2");
-      expect(output).toContain("3");
     });
 
     test("displays shortcuts with their associated tab labels", () => {
       const { lastFrame } = render(
-        <TopBar tabs={mockTabs} activeTab="list" />
+        <TopBar tabs={mockTabs} activeTab="fuda" />
       );
 
       const output = lastFrame() || "";
@@ -114,36 +108,33 @@ describe("TopBar component", () => {
 
     test("handles tabs without shortcuts", () => {
       const tabsNoShortcuts: Tab[] = [
-        { id: "list", label: "List" },
-        { id: "details", label: "Details" },
+        { id: "fuda", label: "Fuda" },
+        { id: "log", label: "Log" },
       ];
 
       const { lastFrame } = render(
-        <TopBar tabs={tabsNoShortcuts} activeTab="list" />
+        <TopBar tabs={tabsNoShortcuts} activeTab="fuda" />
       );
 
       // Should render without crashing
       const output = lastFrame();
-      expect(output).toContain("List");
-      expect(output).toContain("Details");
+      expect(output).toContain("Fuda");
+      expect(output).toContain("Log");
     });
 
     test("handles mixed tabs with and without shortcuts", () => {
       const mixedTabs: Tab[] = [
-        { id: "list", label: "List", shortcut: "1" },
-        { id: "details", label: "Details" },
-        { id: "log", label: "Log", shortcut: "3" },
+        { id: "fuda", label: "Fuda", shortcut: "1" },
+        { id: "log", label: "Log" },
       ];
 
       const { lastFrame } = render(
-        <TopBar tabs={mixedTabs} activeTab="list" />
+        <TopBar tabs={mixedTabs} activeTab="fuda" />
       );
 
       const output = lastFrame();
       expect(output).toContain("1");
-      expect(output).toContain("3");
-      expect(output).toContain("List");
-      expect(output).toContain("Details");
+      expect(output).toContain("Fuda");
       expect(output).toContain("Log");
     });
   });
