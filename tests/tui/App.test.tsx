@@ -1,7 +1,73 @@
-import { describe, expect, test, mock } from "bun:test";
+import { describe, expect, test, mock, beforeEach, afterEach, spyOn } from "bun:test";
 import React from "react";
 import { render } from "ink-testing-library";
 import { App } from "../../src/tui/App";
+import * as listModule from "../../src/cli/commands/list";
+import { type Fuda, FudaStatus, SpiritType } from "../../src/types";
+
+// Mock fuda data for testing
+const mockFudas: Fuda[] = [
+  {
+    id: "sk-test1",
+    displayId: null,
+    prdId: null,
+    title: "First task",
+    description: "Description 1",
+    status: FudaStatus.PENDING,
+    spiritType: SpiritType.SHIKIGAMI,
+    assignedSpiritId: null,
+    outputCommitHash: null,
+    retryCount: 0,
+    failureContext: null,
+    parentFudaId: null,
+    priority: 5,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    deletedBy: null,
+    deleteReason: null,
+  },
+  {
+    id: "sk-test2",
+    displayId: null,
+    prdId: null,
+    title: "Second task",
+    description: "Description 2",
+    status: FudaStatus.READY,
+    spiritType: SpiritType.SHIKIGAMI,
+    assignedSpiritId: null,
+    outputCommitHash: null,
+    retryCount: 0,
+    failureContext: null,
+    parentFudaId: null,
+    priority: 3,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    deletedBy: null,
+    deleteReason: null,
+  },
+  {
+    id: "sk-test3",
+    displayId: null,
+    prdId: null,
+    title: "Third task",
+    description: "Description 3",
+    status: FudaStatus.IN_PROGRESS,
+    spiritType: SpiritType.TENGU,
+    assignedSpiritId: null,
+    outputCommitHash: null,
+    retryCount: 0,
+    failureContext: null,
+    parentFudaId: null,
+    priority: 8,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    deletedBy: null,
+    deleteReason: null,
+  },
+];
 
 describe("App component", () => {
   describe("renders layout", () => {
@@ -292,6 +358,171 @@ describe("App component", () => {
       // Verify the outer Box has height="100%" prop
       // The return statement should have a Box with height="100%"
       expect(appSource).toMatch(/return\s*\(\s*<Box[^>]*height\s*=\s*["']100%["']/s);
+    });
+  });
+
+  describe("Fuda view", () => {
+    let runListSpy: ReturnType<typeof spyOn>;
+
+    beforeEach(() => {
+      runListSpy = spyOn(listModule, "runList").mockResolvedValue({
+        success: true,
+        fudas: mockFudas,
+      });
+    });
+
+    afterEach(() => {
+      runListSpy.mockRestore();
+    });
+
+    test("renders FudaList when on Fuda tab", async () => {
+      const { lastFrame, unmount } = render(<App />);
+
+      // Wait for async data loading
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const output = lastFrame() || "";
+      // Should show fuda titles from the list
+      expect(output).toContain("First task");
+      expect(output).toContain("Second task");
+      expect(output).toContain("Third task");
+      unmount();
+    });
+
+    test("calls useFudaList hook to fetch fuda on mount", async () => {
+      const { unmount } = render(<App />);
+
+      // Wait for async effect
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(runListSpy).toHaveBeenCalled();
+      unmount();
+    });
+
+    test("shows loading state while fetching fuda", async () => {
+      // Make runList hang to simulate loading
+      runListSpy.mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve({ success: true, fudas: [] }), 500))
+      );
+
+      const { lastFrame, unmount } = render(<App />);
+
+      // Check immediately before data loads
+      const output = lastFrame() || "";
+      expect(output).toContain("Loading");
+      unmount();
+    });
+
+    test("shows error state when fetching fails", async () => {
+      runListSpy.mockResolvedValue({
+        success: false,
+        error: "Database connection failed",
+      });
+
+      const { lastFrame, unmount } = render(<App />);
+
+      // Wait for async effect
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const output = lastFrame() || "";
+      expect(output).toContain("Error");
+      unmount();
+    });
+
+    test("displays fuda IDs in the list", async () => {
+      const { lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const output = lastFrame() || "";
+      expect(output).toContain("sk-test1");
+      expect(output).toContain("sk-test2");
+      expect(output).toContain("sk-test3");
+      unmount();
+    });
+
+    test("displays fuda statuses in the list", async () => {
+      const { lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const output = lastFrame() || "";
+      expect(output).toContain("pending");
+      expect(output).toContain("ready");
+      expect(output).toContain("in_progress");
+      unmount();
+    });
+
+    test("supports keyboard navigation with j/k keys", async () => {
+      const { stdin, lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Initial state - first item selected
+      const initialOutput = lastFrame() || "";
+      expect(initialOutput).toContain(">");
+
+      // Navigate down
+      stdin.write("j");
+
+      // Should still render without crashing
+      const afterNavigate = lastFrame() || "";
+      expect(afterNavigate).toContain(">");
+      unmount();
+    });
+
+    test("shows selection indicator for current fuda", async () => {
+      const { lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const output = lastFrame() || "";
+      // Should show selection indicator (>) for the first item
+      expect(output).toContain(">");
+      unmount();
+    });
+
+    test("does not show fuda list when on Log tab", async () => {
+      const { stdin, lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Switch to Log tab
+      stdin.write("2");
+
+      const output = lastFrame() || "";
+      // Should not show fuda content on Log tab
+      expect(output).not.toContain("First task");
+      expect(output).not.toContain("Second task");
+      unmount();
+    });
+
+    test("shows empty state when no fudas exist", async () => {
+      runListSpy.mockResolvedValue({
+        success: true,
+        fudas: [],
+      });
+
+      const { lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const output = lastFrame() || "";
+      // Should show some indication that there are no fudas
+      expect(output).toContain("No fuda");
+      unmount();
+    });
+
+    test("displays fuda priorities", async () => {
+      const { lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const output = lastFrame() || "";
+      expect(output).toContain("p5");
+      expect(output).toContain("p3");
+      expect(output).toContain("p8");
+      unmount();
     });
   });
 });
