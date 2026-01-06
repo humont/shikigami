@@ -75,7 +75,7 @@ describe("tui command", () => {
       const result = await runTui();
 
       expect(result.instance).toBeDefined();
-      expect(result.instance.unmount).toBeDefined();
+      expect(result.instance!.unmount).toBeDefined();
     });
   });
 
