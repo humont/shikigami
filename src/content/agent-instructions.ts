@@ -31,6 +31,11 @@ A **fuda** is a task unit containing:
 - **status**: Current state (\`pending\`, \`ready\`, \`in_progress\`, \`in_review\`, \`blocked\`, \`failed\`, \`done\`)
 - **priority**: Numeric priority (higher = more important)
 
+### Spirit Types
+Spirit types categorize AI agents by their specialized capabilities:
+- **shikigami**: General-purpose spirits for standard development tasks
+- **tengu**: Review-focused spirits for code review and quality checks
+- **kitsune**: Testing-focused spirits for writing and running tests
 
 ### Dependencies
 Fuda can have dependencies that control execution order:
