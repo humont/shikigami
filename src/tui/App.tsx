@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Box, Text, useInput } from "ink";
+import { Box, Text, useInput, useStdout } from "ink";
 import { TopBar, type Tab } from "./components/TopBar";
 import { BottomBar, type CommandHint } from "./components/BottomBar";
 import { FudaList } from "./components/FudaList";
 import { LogView } from "./components/LogView";
+import { SidePanel } from "./components/SidePanel";
 import { useFudaList } from "./hooks/useFudaList";
 import { useAuditLog } from "./hooks/useAuditLog";
 
@@ -41,6 +42,10 @@ export function App({
   const activeTab = controlledActiveTab ?? internalActiveTab;
   const { fudas, loading, error } = useFudaList({ all: true });
   const { entries: logEntries, loading: logLoading, error: logError } = useAuditLog();
+
+  const { stdout } = useStdout();
+  const panelWidth = Math.min(50, Math.floor((stdout?.columns ?? 80) * 0.35));
+  const selectedFuda = fudas[selectedFudaIndex] ?? null;
 
   const hints: CommandHint[] = [
     { key: "q", description: "Quit" },
@@ -101,6 +106,14 @@ export function App({
             )
           )}
         </Box>
+        {selectedFuda && activeTab === "fuda" && (
+          <SidePanel
+            fuda={selectedFuda}
+            blockers={[]}
+            dependents={[]}
+            width={panelWidth}
+          />
+        )}
       </Box>
       <BottomBar hints={hints} view={activeTab} />
     </Box>
