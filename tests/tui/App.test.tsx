@@ -283,4 +283,15 @@ describe("App component", () => {
       expect(lastFrame()).toBeDefined();
     });
   });
+
+  describe("layout sizing", () => {
+    test("outer Box has height 100% to fill terminal", async () => {
+      // Import the App module source to verify the JSX structure
+      const appSource = await Bun.file("src/tui/App.tsx").text();
+
+      // Verify the outer Box has height="100%" prop
+      // The return statement should have a Box with height="100%"
+      expect(appSource).toMatch(/return\s*\(\s*<Box[^>]*height\s*=\s*["']100%["']/s);
+    });
+  });
 });
