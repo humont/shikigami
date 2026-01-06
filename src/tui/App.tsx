@@ -58,7 +58,7 @@ export function App({
   });
 
   return (
-    <Box flexDirection="column">
+    <Box flexDirection="column" height="100%">
       <TopBar tabs={TABS} activeTab={activeTab} />
       <Box flexDirection="row" flexGrow={1}>
         <Box flexDirection="column" flexGrow={1}>
