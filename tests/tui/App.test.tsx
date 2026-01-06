@@ -3,10 +3,12 @@ import React from "react";
 import { render } from "ink-testing-library";
 import { App } from "../../src/tui/App";
 import * as listModule from "../../src/cli/commands/list";
+import * as logModule from "../../src/cli/commands/log";
 import { type Fuda, FudaStatus, SpiritType } from "../../src/types";
 
 // Global mock for runList to prevent real API calls during all tests
 let globalRunListSpy: ReturnType<typeof spyOn>;
+let globalRunLogAllSpy: ReturnType<typeof spyOn>;
 
 // Mock fuda data for testing
 const mockFudas: Fuda[] = [
@@ -79,10 +81,15 @@ describe("App component", () => {
       success: true,
       fudas: [],
     });
+    globalRunLogAllSpy = spyOn(logModule, "runLogAll").mockResolvedValue({
+      success: true,
+      entries: [],
+    });
   });
 
   afterAll(() => {
     globalRunListSpy.mockRestore();
+    globalRunLogAllSpy.mockRestore();
   });
 
   describe("renders layout", () => {
