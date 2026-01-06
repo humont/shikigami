@@ -6,7 +6,7 @@ export interface CommandHint {
   description: string;
 }
 
-export type ViewContext = "list" | "details" | "log";
+export type ViewContext = "fuda" | "log";
 
 interface BottomBarProps {
   hints: CommandHint[];

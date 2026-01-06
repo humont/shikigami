@@ -6,15 +6,13 @@ import { BottomBar, type CommandHint } from "./components/BottomBar";
 type TabId = "fuda" | "log";
 
 const TABS: Tab[] = [
-  { id: "list", label: "List", shortcut: "1" },
-  { id: "details", label: "Details", shortcut: "2" },
-  { id: "log", label: "Log", shortcut: "3" },
+  { id: "fuda", label: "Fuda", shortcut: "1" },
+  { id: "log", label: "Log", shortcut: "2" },
 ];
 
 const TAB_SHORTCUTS: Record<string, TabId> = {
-  "1": "list",
-  "2": "details",
-  "3": "log",
+  "1": "fuda",
+  "2": "log",
 };
 
 interface AppProps {
@@ -28,7 +26,7 @@ interface AppProps {
 export function App({
   onExit,
   inputMode = false,
-  initialTab = "list",
+  initialTab = "fuda",
   activeTab: controlledActiveTab,
   onTabChange,
 }: AppProps) {
@@ -38,7 +36,7 @@ export function App({
 
   const hints: CommandHint[] = [
     { key: "q", description: "Quit" },
-    { key: "1/2/3", description: "Switch tab" },
+    { key: "1/2", description: "Switch tab" },
     { key: "j/k", description: "Navigate" },
   ];
 
@@ -64,8 +62,7 @@ export function App({
       <TopBar tabs={TABS} activeTab={activeTab} />
       <Box flexDirection="row" flexGrow={1}>
         <Box flexDirection="column" flexGrow={1}>
-          {activeTab === "list" && <Text>List View</Text>}
-          {activeTab === "details" && <Text>Details View</Text>}
+          {activeTab === "fuda" && <Text>Fuda View</Text>}
           {activeTab === "log" && <Text>Log View</Text>}
         </Box>
       </Box>
