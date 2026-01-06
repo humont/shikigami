@@ -546,4 +546,228 @@ describe("App component", () => {
       unmount();
     });
   });
+
+  describe("split layout with SidePanel", () => {
+    beforeEach(() => {
+      globalRunListSpy.mockResolvedValue({
+        success: true,
+        fudas: mockFudas,
+      });
+    });
+
+    afterEach(() => {
+      globalRunListSpy.mockResolvedValue({
+        success: true,
+        fudas: [],
+      });
+    });
+
+    test("side panel appears when fuda is selected", async () => {
+      const { lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const output = lastFrame() || "";
+      // When on Fuda tab with a selected fuda, side panel should appear
+      // The side panel should show details section
+      expect(output).toContain("Details");
+      unmount();
+    });
+
+    test("panel shows correct fuda details for selected fuda", async () => {
+      const { lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const output = lastFrame() || "";
+      // First fuda is selected by default
+      // Panel should show details of the first fuda
+      expect(output).toContain("First task");
+      expect(output).toContain("Description 1");
+      expect(output).toContain("sk-test1");
+      unmount();
+    });
+
+    test("panel updates when selection changes via j key", async () => {
+      const { stdin, lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Navigate down to second fuda
+      stdin.write("j");
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const output = lastFrame() || "";
+      // Panel should now show second fuda's details
+      expect(output).toContain("Second task");
+      expect(output).toContain("Description 2");
+      unmount();
+    });
+
+    test("panel updates when selection changes via k key", async () => {
+      const { stdin, lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Navigate down first, then back up
+      stdin.write("j");
+      stdin.write("k");
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const output = lastFrame() || "";
+      // Panel should show first fuda's details again
+      expect(output).toContain("First task");
+      expect(output).toContain("Description 1");
+      unmount();
+    });
+
+    test("layout is split with row containing list and panel", async () => {
+      const { lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const output = lastFrame() || "";
+      // Should contain both FudaList content and SidePanel content side by side
+      // FudaList shows task titles with selection indicator
+      expect(output).toContain(">");
+      // SidePanel shows Details section
+      expect(output).toContain("Details");
+      unmount();
+    });
+
+    test("panel shows fuda status", async () => {
+      const { lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const output = lastFrame() || "";
+      // First fuda has pending status
+      expect(output).toContain("pending");
+      unmount();
+    });
+
+    test("panel shows fuda spirit type", async () => {
+      const { lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const output = lastFrame() || "";
+      expect(output).toContain("shikigami");
+      unmount();
+    });
+
+    test("panel shows fuda priority", async () => {
+      const { lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const output = lastFrame() || "";
+      // First fuda has priority 5
+      expect(output).toContain("5");
+      unmount();
+    });
+
+    test("panel only shows on fuda tab, not log tab", async () => {
+      const { stdin, lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Switch to Log tab
+      stdin.write("2");
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const output = lastFrame() || "";
+      // Should not show Details section on Log tab
+      expect(output).not.toContain("Details");
+      // Should not show fuda descriptions on Log tab
+      expect(output).not.toContain("Description 1");
+      unmount();
+    });
+
+    test("switching back to fuda tab shows panel again", async () => {
+      const { stdin, lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Switch to Log tab
+      stdin.write("2");
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Switch back to Fuda tab
+      stdin.write("1");
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const output = lastFrame() || "";
+      // Panel should reappear
+      expect(output).toContain("Details");
+      expect(output).toContain("First task");
+      unmount();
+    });
+
+    test("panel shows Dependencies section", async () => {
+      const { lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const output = lastFrame() || "";
+      // Panel should have Dependencies section (might show "No dependencies")
+      expect(output).toContain("Dependencies");
+      unmount();
+    });
+
+    test("panel has border for visual separation", async () => {
+      const { lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const output = lastFrame() || "";
+      // Panel should have border characters
+      const hasBorder =
+        output.includes("│") ||
+        output.includes("─") ||
+        output.includes("┌") ||
+        output.includes("╭");
+      expect(hasBorder).toBe(true);
+      unmount();
+    });
+
+    test("panel does not appear when no fudas exist", async () => {
+      globalRunListSpy.mockResolvedValue({
+        success: true,
+        fudas: [],
+      });
+
+      const { lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const output = lastFrame() || "";
+      // Should show empty state, not Details panel
+      expect(output).toContain("No fuda");
+      expect(output).not.toContain("Details");
+      unmount();
+    });
+
+    test("panel selection persists through data refresh", async () => {
+      const { stdin, lastFrame, unmount } = render(<App />);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Navigate to second fuda
+      stdin.write("j");
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Trigger a refresh (r key or similar)
+      stdin.write("r");
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const output = lastFrame() || "";
+      // Should still show second fuda in panel
+      expect(output).toContain("Second task");
+      unmount();
+    });
+  });
 });
