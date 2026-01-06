@@ -1,6 +1,6 @@
 {
   "name": "shikigami",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "AI agent orchestration for parallel development",
   "module": "src/cli/index.ts",
   "type": "module",
@@ -15,7 +15,13 @@
     "type": "git",
     "url": "git+https://github.com/humont/shikigami.git"
   },
-  "keywords": ["ai", "agent", "orchestration", "cli", "task-management"],
+  "keywords": [
+    "ai",
+    "agent",
+    "orchestration",
+    "cli",
+    "task-management"
+  ],
   "author": "humont",
   "license": "MIT",
   "scripts": {
