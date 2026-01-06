@@ -1,11 +1,12 @@
-import React from "react";
-import { Box, Text, useInput } from "ink";
+import React, { useState, useEffect } from "react";
+import { Box, Text, useInput, useStdout } from "ink";
 import { type Fuda, FudaStatus } from "../../types";
 
 interface FudaListProps {
   fudas: Fuda[];
   selectedIndex: number;
   onSelect?: (index: number) => void;
+  maxHeight?: number; // Optional override for visible height
 }
 
 function getStatusColor(status: FudaStatus): string {
@@ -28,7 +29,25 @@ function getStatusColor(status: FudaStatus): string {
   }
 }
 
-export function FudaList({ fudas, selectedIndex, onSelect }: FudaListProps) {
+export function FudaList({ fudas, selectedIndex, onSelect, maxHeight }: FudaListProps) {
+  const { stdout } = useStdout();
+  const [scrollOffset, setScrollOffset] = useState(0);
+
+  // Calculate visible height (subtract 3 for TopBar, BottomBar, and padding)
+  const terminalHeight = stdout?.rows ?? 24;
+  const visibleHeight = maxHeight ?? Math.max(1, terminalHeight - 3);
+
+  // Adjust scroll offset to keep selected item in view
+  useEffect(() => {
+    if (selectedIndex < scrollOffset) {
+      // Selected item is above the visible area
+      setScrollOffset(selectedIndex);
+    } else if (selectedIndex >= scrollOffset + visibleHeight) {
+      // Selected item is below the visible area
+      setScrollOffset(selectedIndex - visibleHeight + 1);
+    }
+  }, [selectedIndex, scrollOffset, visibleHeight]);
+
   useInput((input, key) => {
     if (!onSelect || fudas.length === 0) return;
 
@@ -41,10 +60,14 @@ export function FudaList({ fudas, selectedIndex, onSelect }: FudaListProps) {
     }
   });
 
+  // Get the visible window of fudas
+  const visibleFudas = fudas.slice(scrollOffset, scrollOffset + visibleHeight);
+
   return (
     <Box flexDirection="column">
-      {fudas.map((fuda, index) => {
-        const isSelected = index === selectedIndex;
+      {visibleFudas.map((fuda, visibleIndex) => {
+        const actualIndex = scrollOffset + visibleIndex;
+        const isSelected = actualIndex === selectedIndex;
         const displayId = fuda.displayId || fuda.id;
 
         return (
