@@ -3,7 +3,7 @@ import { Box, Text, useInput } from "ink";
 import { TopBar, type Tab } from "./components/TopBar";
 import { BottomBar, type CommandHint } from "./components/BottomBar";
 
-type TabId = "list" | "details" | "log";
+type TabId = "fuda" | "log";
 
 const TABS: Tab[] = [
   { id: "list", label: "List", shortcut: "1" },
