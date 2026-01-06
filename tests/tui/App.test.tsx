@@ -9,20 +9,19 @@ describe("App component", () => {
       const { lastFrame } = render(<App />);
 
       const output = lastFrame();
-      // Should show tab labels
-      expect(output).toContain("List");
-      expect(output).toContain("Details");
+      // Should show tab labels (Fuda and Log only)
+      expect(output).toContain("Fuda");
       expect(output).toContain("Log");
+      expect(output).not.toContain("Details");
     });
 
     test("renders TopBar with keyboard shortcuts", () => {
       const { lastFrame } = render(<App />);
 
       const output = lastFrame();
-      // Should show tab shortcuts
+      // Should show tab shortcuts (1 and 2 only)
       expect(output).toContain("1");
       expect(output).toContain("2");
-      expect(output).toContain("3");
     });
 
     test("renders BottomBar with command hints", () => {
@@ -39,10 +38,10 @@ describe("App component", () => {
 
       const output = lastFrame() || "";
       // TopBar should appear before BottomBar content
-      const listTabIndex = output.indexOf("List");
+      const fudaTabIndex = output.indexOf("Fuda");
       const quitIndex = output.indexOf("Quit");
 
-      expect(listTabIndex).toBeLessThan(quitIndex);
+      expect(fudaTabIndex).toBeLessThan(quitIndex);
     });
 
     test("renders without crashing", () => {
@@ -105,40 +104,30 @@ describe("App component", () => {
   });
 
   describe("tab state", () => {
-    test("defaults to list tab", () => {
+    test("defaults to fuda tab", () => {
       const { lastFrame } = render(<App />);
 
       const output = lastFrame() || "";
-      // Active tab should be visually different (checking for [List] bracket style)
+      // Active tab should be visually different (checking for [Fuda] bracket style)
       // or bold/cyan styling indicating active state
-      expect(output).toContain("List");
+      expect(output).toContain("Fuda");
     });
 
-    test("pressing 1 switches to list tab", () => {
+    test("pressing 1 switches to fuda tab", () => {
       const { stdin, lastFrame } = render(<App />);
 
       stdin.write("1");
 
       const output = lastFrame() || "";
-      expect(output).toContain("List");
+      expect(output).toContain("Fuda");
     });
 
-    test("pressing 2 switches to details tab", () => {
+    test("pressing 2 switches to log tab", () => {
       const { stdin, lastFrame } = render(<App />);
 
       stdin.write("2");
 
-      // After pressing 2, details tab should be active
-      const output = lastFrame() || "";
-      expect(output).toContain("Details");
-    });
-
-    test("pressing 3 switches to log tab", () => {
-      const { stdin, lastFrame } = render(<App />);
-
-      stdin.write("3");
-
-      // After pressing 3, log tab should be active
+      // After pressing 2, log tab should be active
       const output = lastFrame() || "";
       expect(output).toContain("Log");
     });
@@ -167,23 +156,23 @@ describe("App component", () => {
 
       stdin.write("2");
 
-      // Tab should have changed to details
-      expect(newTab).toBe("details");
+      // Tab should have changed to log
+      expect(newTab).toBe("log");
     });
 
     test("switching tabs updates BottomBar hints", () => {
       const { stdin, lastFrame } = render(<App />);
 
-      // In list view
-      const listOutput = lastFrame() || "";
+      // In fuda view
+      const fudaOutput = lastFrame() || "";
 
       stdin.write("2");
-      // In details view
-      const detailsOutput = lastFrame() || "";
+      // In log view
+      const logOutput = lastFrame() || "";
 
       // BottomBar hints should change based on current tab
-      // List view might show navigation hints, details might show action hints
-      expect(listOutput !== detailsOutput || listOutput === detailsOutput).toBe(true);
+      // Fuda view might show navigation hints, log might show action hints
+      expect(fudaOutput !== logOutput || fudaOutput === logOutput).toBe(true);
     });
 
     test("invalid tab numbers are ignored", () => {
@@ -191,7 +180,7 @@ describe("App component", () => {
 
       const initialOutput = lastFrame();
 
-      stdin.write("9"); // Invalid tab number
+      stdin.write("3"); // Invalid tab number (only 1 and 2 are valid)
       const afterInvalidKey = lastFrame();
 
       // Output should remain the same
@@ -201,20 +190,20 @@ describe("App component", () => {
     test("tab state persists across multiple key presses", () => {
       const { stdin, lastFrame } = render(<App />);
 
-      stdin.write("2"); // Switch to details
+      stdin.write("2"); // Switch to log
       stdin.write("j"); // Navigate down (shouldn't change tab)
 
-      // Should still be on details tab
+      // Should still be on log tab
       const output = lastFrame() || "";
-      expect(output).toContain("Details");
+      expect(output).toContain("Log");
     });
   });
 
   describe("controlled tab state", () => {
     test("accepts initial active tab prop", () => {
-      const { lastFrame } = render(<App initialTab="details" />);
+      const { lastFrame } = render(<App initialTab="log" />);
 
-      // Should start with details tab active
+      // Should start with log tab active
       const output = lastFrame() || "";
       // The active state should be reflected visually
       expect(output).toBeDefined();
@@ -238,7 +227,7 @@ describe("App component", () => {
 
       stdin.write("2");
 
-      expect(newTab).toBe("details");
+      expect(newTab).toBe("log");
     });
 
     test("onTabChange is not called when pressing current tab", () => {
@@ -249,7 +238,7 @@ describe("App component", () => {
 
       const { stdin } = render(<App onTabChange={handleTabChange} />);
 
-      stdin.write("1"); // Already on list tab by default
+      stdin.write("1"); // Already on fuda tab by default
 
       expect(callCount).toBe(0);
     });
@@ -261,11 +250,10 @@ describe("App component", () => {
 
       stdin.write("1");
       stdin.write("2");
-      stdin.write("3");
       stdin.write("1");
       stdin.write("2");
 
-      // Should end up on details tab
+      // Should end up on log tab
       const output = lastFrame();
       expect(output).toBeDefined();
     });
