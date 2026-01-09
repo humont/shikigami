@@ -1,10 +1,10 @@
-import { Database } from "bun:sqlite";
-import { existsSync } from "fs";
-import { join } from "path";
-import { findFudaByPrefix, getFuda, claimFuda } from "../../db/fuda";
-import { getEntriesByType, EntryType } from "../../db/ledger";
-import { type Fuda } from "../../types";
-import { SHIKIGAMI_DIR, DB_FILENAME } from "../../config/paths";
+import { Database } from 'bun:sqlite';
+import { existsSync } from 'fs';
+import { join } from 'path';
+import { DB_FILENAME, SHIKIGAMI_DIR } from '../../config/paths';
+import { claimFuda, findFudaByPrefix, getFuda } from '../../db/fuda';
+import { EntryType, getEntriesByType } from '../../db/ledger';
+import type { Fuda } from '../../types';
 
 export interface StartOptions {
   id: string;
@@ -66,10 +66,10 @@ export async function runStart(options: StartOptions): Promise<StartResult> {
 
     if (!result.success) {
       db.close();
-      if (result.reason === "already_in_progress") {
+      if (result.reason === 'already_in_progress') {
         return {
           success: false,
-          error: `Fuda '${fuda.id}' is already being worked on. Use 'shiki list --status ready' to find available tasks.`,
+          error: `Fuda '${fuda.id}' is already being worked on. Use 'shiki ready' to find available tasks. If you are an AI, append \`--json\` to the command to get the task details.`,
         };
       }
       return {
