@@ -6,3 +6,9 @@ export {
   type PrdInfo,
   type OrphanPrdRef,
 } from "./list";
+export {
+  runPrdShow,
+  type PrdShowOptions,
+  type PrdShowResult,
+  type PrdFudaSummary,
+} from "./show";

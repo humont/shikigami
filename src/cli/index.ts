@@ -7,6 +7,7 @@ import { runRemove } from "./commands/remove";
 import { runReady } from "./commands/ready";
 import { runStatus } from "./commands/status";
 import { createDepsCommand } from "./commands/deps";
+import { createPrdCommand } from "./commands/prd/command";
 import { runImport } from "./commands/import";
 import { runList } from "./commands/list";
 import { runUpdate } from "./commands/update";
@@ -406,6 +407,9 @@ program
 
 // Deps subcommand
 program.addCommand(createDepsCommand(() => program.opts().json));
+
+// PRD subcommand
+program.addCommand(createPrdCommand(() => program.opts().json));
 
 // Import command
 program
