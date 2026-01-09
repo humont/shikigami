@@ -14,6 +14,7 @@ import { runStart } from "./commands/start";
 import { runFinish } from "./commands/finish";
 import { runFail } from "./commands/fail";
 import { runLog, runLogAll } from "./commands/log";
+import { runLedger, runLedgerAdd } from "./commands/ledger";
 import { runAgentGuide } from "./commands/agent-guide";
 import { runUpgrade } from "./commands/upgrade";
 import { runLore, runInteractiveLore, formatLoreList, formatLoreEntry } from "./commands/lore";
@@ -398,6 +399,67 @@ program
       process.exit(1);
     }
   });
+
+// Ledger command
+const ledgerCommand = new Command("ledger")
+  .description("View and manage ledger entries for a fuda")
+  .argument("<id>", "Fuda ID or prefix")
+  .option("-t, --type <type>", "Filter by entry type (handoff, learning)")
+  .action(async (id, options) => {
+    const isJson = program.opts().json;
+    const result = await runLedger({
+      id,
+      type: options.type,
+    });
+
+    if (result.success) {
+      if (isJson) {
+        output(result.entries, true);
+      } else {
+        if (result.entries!.length === 0) {
+          console.log("No ledger entries found.");
+        } else {
+          console.log("Ledger entries:\n");
+          result.entries!.forEach((e) => console.log(formatLedgerEntry(e)));
+        }
+      }
+    } else {
+      outputError(result.error!, isJson);
+      process.exit(1);
+    }
+  });
+
+ledgerCommand
+  .command("add <fuda-id> <content>")
+  .description("Add a ledger entry to a fuda")
+  .option("-t, --type <type>", "Entry type (handoff, learning)", "learning")
+  .action(async (fudaId, content, options) => {
+    const isJson = program.opts().json;
+    const result = await runLedgerAdd({
+      id: fudaId,
+      content,
+      type: options.type,
+    });
+
+    if (result.success) {
+      if (isJson) {
+        output(result.entry, true);
+      } else {
+        console.log(`Added ${result.entry!.entryType} entry to fuda ${result.entry!.fudaId}`);
+      }
+    } else {
+      outputError(result.error!, isJson);
+      process.exit(1);
+    }
+  });
+
+program.addCommand(ledgerCommand);
+
+function formatLedgerEntry(entry: any): string {
+  const timestamp = new Date(entry.createdAt).toISOString();
+  const typeLabel = entry.entryType === "handoff" ? "[handoff]" : "[learning]";
+  return `  ${colors.dim}${timestamp}${colors.reset} ${colors.cyan}${typeLabel}${colors.reset} ${entry.content}`;
+}
 
 // Helper formatters
 function formatFudaDetails(fuda: any): string {
