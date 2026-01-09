@@ -86,22 +86,25 @@ export function updateReadyFuda(db: Database): number {
   // 2. It's not deleted
   // 3. It has no blocking dependencies OR all blocking dependencies are done
 
-  const result = db.run(
-    `UPDATE fuda
-     SET status = 'ready', updated_at = datetime('now')
-     WHERE status = 'pending'
-       AND deleted_at IS NULL
-       AND id NOT IN (
-         SELECT DISTINCT fd.fuda_id
-         FROM fuda_dependencies fd
-         JOIN fuda dep ON fd.depends_on_id = dep.id
-         WHERE fd.dependency_type IN ('blocks', 'parent-child')
-           AND dep.status != 'done'
-           AND dep.deleted_at IS NULL
-       )`
-  );
+  const whereClause = `
+    status = 'pending'
+    AND deleted_at IS NULL
+    AND id NOT IN (
+      SELECT DISTINCT fd.fuda_id
+      FROM fuda_dependencies fd
+      JOIN fuda dep ON fd.depends_on_id = dep.id
+      WHERE fd.dependency_type IN ('blocks', 'parent-child')
+        AND dep.status != 'done'
+        AND dep.deleted_at IS NULL
+    )
+  `;
 
-  return result.changes;
+  // Count first because FTS5 triggers inflate db.run().changes
+  const countResult = db.query(`SELECT COUNT(*) as count FROM fuda WHERE ${whereClause}`).get() as { count: number };
+
+  db.run(`UPDATE fuda SET status = 'ready', updated_at = datetime('now') WHERE ${whereClause}`);
+
+  return countResult.count;
 }
 
 export function getDependencyTree(
