@@ -15,6 +15,7 @@ import { runFinish } from "./commands/finish";
 import { runFail } from "./commands/fail";
 import { runLog, runLogAll } from "./commands/log";
 import { runLedger, runLedgerAdd } from "./commands/ledger";
+import { runSearch } from "./commands/search";
 import { runAgentGuide } from "./commands/agent-guide";
 import { runUpgrade } from "./commands/upgrade";
 import { runLore, runInteractiveLore, formatLoreList, formatLoreEntry } from "./commands/lore";
@@ -486,6 +487,54 @@ ledgerCommand
   });
 
 program.addCommand(ledgerCommand);
+
+// Search command
+program
+  .command("search <query>")
+  .description("Search fuda and ledger entries")
+  .option("--fuda-only", "Search only fuda")
+  .option("--ledger-only", "Search only ledger entries")
+  .action(async (query, options) => {
+    const isJson = program.opts().json;
+    const result = await runSearch({
+      query,
+      fudaOnly: options.fudaOnly,
+      ledgerOnly: options.ledgerOnly,
+    });
+
+    if (result.success) {
+      if (isJson) {
+        output(result, true);
+      } else {
+        const hasFuda = result.fuda && result.fuda.length > 0;
+        const hasLedger = result.ledger && result.ledger.length > 0;
+
+        if (!hasFuda && !hasLedger) {
+          console.log("No results found.");
+        } else {
+          if (result.fuda && result.fuda.length > 0) {
+            console.log("\nFuda:");
+            result.fuda.forEach((f) => console.log(formatFudaSummary(f)));
+          }
+          if (result.ledger && result.ledger.length > 0) {
+            console.log("\nLedger entries:");
+            result.ledger.forEach((e) => console.log(formatSearchLedgerEntry(e)));
+          }
+          console.log("");
+        }
+      }
+    } else {
+      outputError(result.error!, isJson);
+      process.exit(1);
+    }
+  });
+
+function formatSearchLedgerEntry(entry: any): string {
+  const timestamp = new Date(entry.createdAt).toISOString().split("T")[0];
+  const typeLabel = entry.entryType === "handoff" ? "[handoff]" : "[learning]";
+  const preview = entry.content.length > 60 ? entry.content.slice(0, 60) + "..." : entry.content;
+  return `  ${colors.dim}${entry.id}${colors.reset}  ${colors.dim}${timestamp}${colors.reset}  ${colors.cyan}${typeLabel}${colors.reset}  ${colors.dim}fuda:${entry.fudaId.slice(0, 10)}${colors.reset}  ${preview}`;
+}
 
 function formatLedgerEntry(entry: any): string {
   const timestamp = new Date(entry.createdAt).toISOString();
