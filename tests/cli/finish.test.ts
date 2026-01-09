@@ -5,10 +5,16 @@ import { tmpdir } from "os";
 import { Database } from "bun:sqlite";
 import { runInit } from "../../src/cli/commands/init";
 import { runFinish } from "../../src/cli/commands/finish";
-import { createFuda, getFuda, updateFudaStatus } from "../../src/db/fuda";
+import {
+  createFuda,
+  getFuda,
+  updateFudaStatus,
+} from "../../src/db/fuda";
 import { addFudaDependency } from "../../src/db/dependencies";
 import { getEntries, EntryType } from "../../src/db/ledger";
 import { FudaStatus, DependencyType } from "../../src/types";
+
+const TEST_COMMIT_HASH = "test-commit-hash";
 
 describe("finish command", () => {
   let testDir: string;
@@ -35,6 +41,7 @@ describe("finish command", () => {
       const result = await runFinish({
         projectRoot: testDir,
         id: fuda.id,
+        commitHash: TEST_COMMIT_HASH,
       });
 
       expect(result.success).toBe(true);
@@ -57,6 +64,7 @@ describe("finish command", () => {
       const result = await runFinish({
         projectRoot: testDir,
         id: prefix,
+        commitHash: TEST_COMMIT_HASH,
       });
 
       expect(result.success).toBe(true);
@@ -75,6 +83,7 @@ describe("finish command", () => {
       const result = await runFinish({
         projectRoot: testDir,
         id: fuda.id,
+        commitHash: TEST_COMMIT_HASH,
       });
 
       // Should be JSON serializable
@@ -93,6 +102,7 @@ describe("finish command", () => {
       const result = await runFinish({
         projectRoot: testDir,
         id: "[REDACTED:sk-secret]",
+        commitHash: TEST_COMMIT_HASH,
       });
 
       expect(result.success).toBe(false);
@@ -103,6 +113,7 @@ describe("finish command", () => {
       const result = await runFinish({
         projectRoot: testDir,
         id: "xyz",
+        commitHash: TEST_COMMIT_HASH,
       });
 
       expect(result.success).toBe(false);
@@ -118,6 +129,7 @@ describe("finish command", () => {
         const result = await runFinish({
           projectRoot: uninitializedDir,
           id: "sk-test",
+          commitHash: TEST_COMMIT_HASH,
         });
 
         expect(result.success).toBe(false);
@@ -150,6 +162,7 @@ describe("finish command", () => {
       const result = await runFinish({
         projectRoot: testDir,
         id: blocker.id,
+        commitHash: TEST_COMMIT_HASH,
       });
 
       expect(result.success).toBe(true);
@@ -182,6 +195,7 @@ describe("finish command", () => {
       await runFinish({
         projectRoot: testDir,
         id: blocker1.id,
+        commitHash: TEST_COMMIT_HASH,
       });
 
       // Dependent should still be pending (blocker2 not done)
@@ -200,6 +214,7 @@ describe("finish command", () => {
       const result = await runFinish({
         projectRoot: testDir,
         id: fuda.id,
+        commitHash: TEST_COMMIT_HASH,
       });
 
       expect(result.success).toBe(true);
@@ -222,6 +237,7 @@ describe("finish command", () => {
       const result = await runFinish({
         projectRoot: testDir,
         id: blocker.id,
+        commitHash: TEST_COMMIT_HASH,
       });
 
       expect(result.success).toBe(true);
@@ -251,6 +267,7 @@ describe("finish command", () => {
       const result = await runFinish({
         projectRoot: testDir,
         id: blocker.id,
+        commitHash: TEST_COMMIT_HASH,
       });
 
       expect(result.success).toBe(true);
@@ -282,6 +299,7 @@ describe("finish command", () => {
       const result = await runFinish({
         projectRoot: testDir,
         id: blocker1.id,
+        commitHash: TEST_COMMIT_HASH,
       });
 
       expect(result.success).toBe(true);
@@ -308,6 +326,7 @@ describe("finish command", () => {
       const result = await runFinish({
         projectRoot: testDir,
         id: blocker.id,
+        commitHash: TEST_COMMIT_HASH,
       });
 
       expect(result.success).toBe(true);
@@ -326,6 +345,7 @@ describe("finish command", () => {
       const result = await runFinish({
         projectRoot: testDir,
         id: fuda.id,
+        commitHash: TEST_COMMIT_HASH,
         notes: "Completed the feature, all tests pass",
       });
 
@@ -347,6 +367,7 @@ describe("finish command", () => {
       const result = await runFinish({
         projectRoot: testDir,
         id: fuda.id,
+        commitHash: TEST_COMMIT_HASH,
       });
 
       expect(result.success).toBe(true);
@@ -365,6 +386,7 @@ describe("finish command", () => {
       await runFinish({
         projectRoot: testDir,
         id: fuda.id,
+        commitHash: TEST_COMMIT_HASH,
         notes: "Handoff note content",
       });
 
@@ -385,6 +407,7 @@ describe("finish command", () => {
       await runFinish({
         projectRoot: testDir,
         id: fuda1.id,
+        commitHash: TEST_COMMIT_HASH,
         notes: "Notes for task 1",
       });
 
@@ -407,6 +430,7 @@ describe("finish command", () => {
       const result = await runFinish({
         projectRoot: testDir,
         id: fuda.id,
+        commitHash: TEST_COMMIT_HASH,
         notes: "Result includes entry",
       });
 
@@ -414,6 +438,73 @@ describe("finish command", () => {
       expect(result.ledgerEntry).toBeDefined();
       expect(result.ledgerEntry!.entryType).toBe(EntryType.HANDOFF);
       expect(result.ledgerEntry!.content).toBe("Result includes entry");
+    });
+  });
+
+  describe("commit hash storage", () => {
+    test("stores commit hash in database", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+
+      const result = await runFinish({
+        projectRoot: testDir,
+        id: fuda.id,
+        commitHash: "abc123def456",
+      });
+
+      expect(result.success).toBe(true);
+      const updated = getFuda(db, fuda.id);
+      expect(updated!.outputCommitHash).toBe("abc123def456");
+    });
+
+    test("returns error when commit hash is empty", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+
+      const result = await runFinish({
+        projectRoot: testDir,
+        id: fuda.id,
+        commitHash: "",
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Commit hash is required");
+    });
+
+    test("returns error when commit hash is whitespace only", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+
+      const result = await runFinish({
+        projectRoot: testDir,
+        id: fuda.id,
+        commitHash: "   ",
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Commit hash is required");
+    });
+
+    test("includes commit hash in result fuda", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+
+      const result = await runFinish({
+        projectRoot: testDir,
+        id: fuda.id,
+        commitHash: "commit789",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.outputCommitHash).toBe("commit789");
     });
   });
 });

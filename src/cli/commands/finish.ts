@@ -1,7 +1,12 @@
 import { Database } from "bun:sqlite";
 import { existsSync } from "fs";
 import { join } from "path";
-import { findFudaByPrefix, getFuda, updateFudaStatus } from "../../db/fuda";
+import {
+  findFudaByPrefix,
+  getFuda,
+  updateFudaStatus,
+  updateFudaCommit,
+} from "../../db/fuda";
 import { getFudaDependents, updateReadyFuda } from "../../db/dependencies";
 import { addEntry, EntryType, type LedgerEntry } from "../../db/ledger";
 import { type Fuda, FudaStatus } from "../../types";
@@ -9,6 +14,7 @@ import { SHIKIGAMI_DIR, DB_FILENAME } from "../../config/paths";
 
 export interface FinishOptions {
   id: string;
+  commitHash: string;
   notes?: string;
   projectRoot?: string;
 }
@@ -50,6 +56,18 @@ export async function runFinish(options: FinishOptions): Promise<FinishResult> {
         error: `Fuda not found: ${options.id}`,
       };
     }
+
+    // Validate commit hash
+    if (!options.commitHash || options.commitHash.trim() === "") {
+      db.close();
+      return {
+        success: false,
+        error: "Commit hash is required",
+      };
+    }
+
+    // Store the commit hash
+    updateFudaCommit(db, fuda.id, options.commitHash);
 
     // Create handoff ledger entry if notes provided
     let ledgerEntry: LedgerEntry | undefined;

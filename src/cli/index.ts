@@ -258,12 +258,17 @@ program
 // Finish command
 program
   .command("finish <id>")
-  .description("Mark a fuda as done")
+  .description("Mark a fuda as done (requires commit hash)")
+  .requiredOption(
+    "-c, --commit-hash <hash>",
+    "Git commit hash for the completed work"
+  )
   .option("-n, --notes <notes>", "Handoff notes for the next agent")
   .action(async (id, options) => {
     const isJson = program.opts().json;
     const result = await runFinish({
       id,
+      commitHash: options.commitHash,
       notes: options.notes,
     });
 
@@ -588,6 +593,7 @@ function formatFudaDetails(fuda: any): string {
     fuda.prdId ? `PRD: ${fuda.prdId}` : null,
     fuda.parentFudaId ? `Parent: ${fuda.parentFudaId}` : null,
     fuda.assignedSpiritId ? `Assigned: ${fuda.assignedSpiritId}` : null,
+    fuda.outputCommitHash ? `Commit: ${fuda.outputCommitHash}` : null,
     `Created: ${fuda.createdAt}`,
     `Updated: ${fuda.updatedAt}`,
   ].filter(Boolean);

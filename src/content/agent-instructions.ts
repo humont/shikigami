@@ -13,8 +13,8 @@ shiki start sk-xxxx --json
 
 # 3. Do the work...
 
-# 4. Mark complete (or failed)
-shiki finish sk-xxxx --json
+# 4. Mark complete (commit hash required) or failed
+shiki finish sk-xxxx -c $(git rev-parse HEAD) --json
 # or if it failed:
 shiki fail sk-xxxx --json
 
@@ -76,9 +76,9 @@ The agent should:
 4. Create a commit with the changes
 
 ### 5. Complete or Fail the Task
-On success:
+On success (commit hash is required):
 \`\`\`bash
-shiki finish sk-a1b2c3 --json
+shiki finish sk-a1b2c3 -c $(git rev-parse HEAD) --json
 \`\`\`
 
 On failure, mark it failed. The task can be retried later by another agent:
@@ -272,8 +272,9 @@ export function getStructuredContent(): AgentGuideStructured {
       {
         step: 5,
         title: 'Complete or Fail the Task',
-        description: 'Update status to done or failed',
-        command: 'shiki finish <id> --json',
+        description:
+          'Update status to done (commit hash required) or failed',
+        command: 'shiki finish <id> -c <commit-hash> --json',
       },
       {
         step: 6,
@@ -330,8 +331,9 @@ export function getStructuredContent(): AgentGuideStructured {
         },
         {
           name: 'shiki finish',
-          description: 'Mark a fuda as finished',
-          example: 'shiki finish sk-a1b2c3 --json',
+          description:
+            'Mark a fuda as finished (requires commit hash via -c or --commit-hash)',
+          example: 'shiki finish sk-a1b2c3 -c abc123def --json',
         },
         {
           name: 'shiki fail',
