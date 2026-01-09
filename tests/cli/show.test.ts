@@ -312,4 +312,84 @@ describe("show command", () => {
       expect(typeof result.error).toBe("string");
     });
   });
+
+  describe("displays PRD info", () => {
+    test("returns prdId when fuda has PRD reference", async () => {
+      const fuda = createFuda(db, {
+        title: "Task with PRD",
+        description: "Has PRD reference",
+        prdId: "2025-01-09_feature-xyz",
+      });
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.prdId).toBe("2025-01-09_feature-xyz");
+    });
+
+    test("returns null prdId when fuda has no PRD reference", async () => {
+      const fuda = createFuda(db, {
+        title: "Task without PRD",
+        description: "No PRD reference",
+      });
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.prdId).toBeNull();
+    });
+
+    test("returns prdPath resolved to .shikigami/prds/{prd_id}.md when fuda has PRD reference", async () => {
+      const fuda = createFuda(db, {
+        title: "Task with PRD",
+        description: "Has PRD reference",
+        prdId: "2025-01-09_feature-xyz",
+      });
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.prdPath).toBe(".shikigami/prds/2025-01-09_feature-xyz.md");
+    });
+
+    test("returns null prdPath when fuda has no PRD reference", async () => {
+      const fuda = createFuda(db, {
+        title: "Task without PRD",
+        description: "No PRD reference",
+      });
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.prdPath).toBeNull();
+    });
+
+    test("prdId is included in JSON output", async () => {
+      const fuda = createFuda(db, {
+        title: "Task with PRD",
+        description: "Has PRD reference",
+        prdId: "my-prd-123",
+      });
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+      const json = JSON.stringify(result);
+      const parsed = JSON.parse(json);
+
+      expect(parsed.fuda.prdId).toBe("my-prd-123");
+    });
+
+    test("prdPath is included in JSON output", async () => {
+      const fuda = createFuda(db, {
+        title: "Task with PRD",
+        description: "Has PRD reference",
+        prdId: "my-prd-123",
+      });
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+      const json = JSON.stringify(result);
+      const parsed = JSON.parse(json);
+
+      expect(parsed.fuda.prdPath).toBe(".shikigami/prds/my-prd-123.md");
+    });
+  });
 });
