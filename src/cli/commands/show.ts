@@ -13,7 +13,7 @@ export interface ShowOptions {
 
 export interface ShowResult {
   success: boolean;
-  fuda?: Fuda & { dependencies: FudaDependency[] };
+  fuda?: Fuda & { dependencies: FudaDependency[]; prdPath: string | null };
   error?: string;
 }
 
@@ -47,12 +47,13 @@ export async function runShow(options: ShowOptions): Promise<ShowResult> {
     }
 
     const dependencies = getFudaDependenciesFull(db, fuda.id);
+    const prdPath = fuda.prdId ? `.shikigami/prds/${fuda.prdId}.md` : null;
 
     db.close();
 
     return {
       success: true,
-      fuda: { ...fuda, dependencies },
+      fuda: { ...fuda, dependencies, prdPath },
     };
   } catch (error) {
     db.close();
