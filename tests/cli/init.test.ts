@@ -396,7 +396,110 @@ Key commands:
     });
   });
 
-  describe("--force confirmation prompt", () => {
+  describe("--force confirmation prompt (integration)", () => {
+    // Get absolute path to CLI script from project root
+    const cliPath = join(process.cwd(), "src/cli/index.ts");
+
+    test("CLI prompts for confirmation with --force", async () => {
+      // First init
+      await runInit({ projectRoot: testDir });
+
+      const proc = Bun.spawn(["bun", "run", cliPath, "init", "--force"], {
+        cwd: testDir,
+        stdin: "pipe",
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+
+      // Send 'n' to abort - need to do this before reading stdout
+      proc.stdin.write("n\n");
+      proc.stdin.end();
+
+      const output = await new Response(proc.stdout).text();
+      await proc.exited;
+
+      expect(output).toContain("WARNING");
+      expect(output).toContain("permanently delete all fuda data");
+      expect(output).toContain("AI agents should NOT proceed");
+    });
+
+    test("CLI proceeds with 'y' confirmation", async () => {
+      await runInit({ projectRoot: testDir });
+
+      const proc = Bun.spawn(["bun", "run", cliPath, "init", "--force"], {
+        cwd: testDir,
+        stdin: "pipe",
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+
+      // Send 'y' to confirm
+      proc.stdin.write("y\n");
+      proc.stdin.end();
+
+      const exitCode = await proc.exited;
+      const output = await new Response(proc.stdout).text();
+
+      expect(exitCode).toBe(0);
+      expect(output).toContain("initialized");
+    });
+
+    test("CLI aborts with 'n' confirmation", async () => {
+      await runInit({ projectRoot: testDir });
+
+      const proc = Bun.spawn(["bun", "run", cliPath, "init", "--force"], {
+        cwd: testDir,
+        stdin: "pipe",
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+
+      proc.stdin.write("n\n");
+      proc.stdin.end();
+
+      const exitCode = await proc.exited;
+      const stderr = await new Response(proc.stderr).text();
+
+      expect(exitCode).toBe(1);
+      expect(stderr).toContain("aborted");
+    });
+
+    test("CLI skips prompt with --yes flag", async () => {
+      await runInit({ projectRoot: testDir });
+
+      const proc = Bun.spawn(["bun", "run", cliPath, "init", "--force", "--yes"], {
+        cwd: testDir,
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+
+      const exitCode = await proc.exited;
+      const output = await new Response(proc.stdout).text();
+
+      expect(exitCode).toBe(0);
+      expect(output).toContain("initialized");
+      expect(output).not.toContain("WARNING");
+    });
+
+    test("CLI errors in --json mode without --yes", async () => {
+      await runInit({ projectRoot: testDir });
+
+      const proc = Bun.spawn(["bun", "run", cliPath, "--json", "init", "--force"], {
+        cwd: testDir,
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+
+      const exitCode = await proc.exited;
+      const stderr = await new Response(proc.stderr).text();
+
+      expect(exitCode).toBe(1);
+      expect(stderr).toContain("--yes");
+      expect(stderr).toContain("--json");
+    });
+  });
+
+  describe("--force confirmation prompt (unit)", () => {
     test("prompts for confirmation before wiping db with --force", async () => {
       // First init
       await runInit({ projectRoot: testDir });

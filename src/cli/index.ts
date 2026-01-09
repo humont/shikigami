@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { Command } from "commander";
-import { runInit } from "./commands/init";
+import { runInitWithConfirmation } from "./commands/init";
 import { runAdd } from "./commands/add";
 import { runShow } from "./commands/show";
 import { runRemove } from "./commands/remove";
@@ -60,15 +60,48 @@ program
   .command("init")
   .description("Initialize shiki in the current project")
   .option("-f, --force", "Overwrite existing database")
-  .option("-y, --yes", "Auto-accept adding shikigami docs to AGENTS.md/CLAUDE.md")
+  .option("-y, --yes", "Auto-accept prompts (required for --force in non-interactive mode)")
   .option("--no-agent-docs", "Skip adding shikigami docs to AGENTS.md/CLAUDE.md")
   .action(async (options) => {
     const isJson = program.opts().json;
-    const result = await runInit({
+
+    // Create confirmation function using readline for interactive prompt
+    const confirmFn = async (message: string): Promise<string> => {
+      const readline = await import("readline");
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
+
+      return new Promise((resolve, reject) => {
+        // Handle Ctrl+C
+        rl.on("SIGINT", () => {
+          rl.close();
+          const error = new Error("User force closed the prompt");
+          error.name = "ExitPromptError";
+          reject(error);
+        });
+
+        process.stdout.write(message);
+        rl.question("", (answer) => {
+          rl.close();
+          resolve(answer.trim());
+        });
+      });
+    };
+
+    const result = await runInitWithConfirmation({
       force: options.force,
       yes: options.yes,
       noAgentDocs: options.agentDocs === false,
+      json: isJson,
+      confirmFn,
     });
+
+    if (result.cancelled) {
+      // User pressed Ctrl+C, exit silently
+      process.exit(1);
+    }
 
     if (result.success) {
       if (isJson) {
