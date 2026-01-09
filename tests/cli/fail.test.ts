@@ -6,6 +6,7 @@ import { Database } from "bun:sqlite";
 import { runInit } from "../../src/cli/commands/init";
 import { runFail } from "../../src/cli/commands/fail";
 import { createFuda, getFuda } from "../../src/db/fuda";
+import { getEntries, EntryType } from "../../src/db/ledger";
 import { FudaStatus } from "../../src/types";
 
 describe("fail command", () => {
@@ -123,6 +124,107 @@ describe("fail command", () => {
       } finally {
         rmSync(uninitializedDir, { recursive: true, force: true });
       }
+    });
+  });
+
+  describe("failure reason with --reason flag", () => {
+    test("creates handoff ledger entry when --reason is provided", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+
+      const result = await runFail({
+        projectRoot: testDir,
+        id: fuda.id,
+        reason: "Blocked by external dependency issue",
+      });
+
+      expect(result.success).toBe(true);
+
+      // Verify handoff entry was created
+      const entries = getEntries(db, fuda.id);
+      expect(entries).toHaveLength(1);
+      expect(entries[0].entryType).toBe(EntryType.HANDOFF);
+      expect(entries[0].content).toBe("Blocked by external dependency issue");
+    });
+
+    test("does not create ledger entry when --reason is not provided", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+
+      const result = await runFail({
+        projectRoot: testDir,
+        id: fuda.id,
+      });
+
+      expect(result.success).toBe(true);
+
+      // Verify no entries were created
+      const entries = getEntries(db, fuda.id);
+      expect(entries).toHaveLength(0);
+    });
+
+    test("created entry has entry_type=handoff", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+
+      await runFail({
+        projectRoot: testDir,
+        id: fuda.id,
+        reason: "API rate limit exceeded",
+      });
+
+      const entries = getEntries(db, fuda.id);
+      expect(entries[0].entryType).toBe(EntryType.HANDOFF);
+    });
+
+    test("created entry is associated with the correct fuda", async () => {
+      const fuda1 = createFuda(db, {
+        title: "Task 1",
+        description: "First task",
+      });
+      const fuda2 = createFuda(db, {
+        title: "Task 2",
+        description: "Second task",
+      });
+
+      await runFail({
+        projectRoot: testDir,
+        id: fuda1.id,
+        reason: "Reason for task 1 failure",
+      });
+
+      // Entry should be on fuda1
+      const entries1 = getEntries(db, fuda1.id);
+      expect(entries1).toHaveLength(1);
+      expect(entries1[0].content).toBe("Reason for task 1 failure");
+
+      // No entry should be on fuda2
+      const entries2 = getEntries(db, fuda2.id);
+      expect(entries2).toHaveLength(0);
+    });
+
+    test("returns created entry in result", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+
+      const result = await runFail({
+        projectRoot: testDir,
+        id: fuda.id,
+        reason: "Result includes entry",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.ledgerEntry).toBeDefined();
+      expect(result.ledgerEntry!.entryType).toBe(EntryType.HANDOFF);
+      expect(result.ledgerEntry!.content).toBe("Result includes entry");
     });
   });
 });

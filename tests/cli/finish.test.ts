@@ -7,6 +7,7 @@ import { runInit } from "../../src/cli/commands/init";
 import { runFinish } from "../../src/cli/commands/finish";
 import { createFuda, getFuda, updateFudaStatus } from "../../src/db/fuda";
 import { addFudaDependency } from "../../src/db/dependencies";
+import { getEntries, EntryType } from "../../src/db/ledger";
 import { FudaStatus, DependencyType } from "../../src/types";
 
 describe("finish command", () => {
@@ -312,6 +313,107 @@ describe("finish command", () => {
       expect(result.success).toBe(true);
       expect(result.unblockedFuda).toBeDefined();
       expect(result.unblockedFuda).toHaveLength(0);
+    });
+  });
+
+  describe("handoff notes with --notes flag", () => {
+    test("creates handoff ledger entry when --notes is provided", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+
+      const result = await runFinish({
+        projectRoot: testDir,
+        id: fuda.id,
+        notes: "Completed the feature, all tests pass",
+      });
+
+      expect(result.success).toBe(true);
+
+      // Verify handoff entry was created
+      const entries = getEntries(db, fuda.id);
+      expect(entries).toHaveLength(1);
+      expect(entries[0].entryType).toBe(EntryType.HANDOFF);
+      expect(entries[0].content).toBe("Completed the feature, all tests pass");
+    });
+
+    test("does not create ledger entry when --notes is not provided", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+
+      const result = await runFinish({
+        projectRoot: testDir,
+        id: fuda.id,
+      });
+
+      expect(result.success).toBe(true);
+
+      // Verify no entries were created
+      const entries = getEntries(db, fuda.id);
+      expect(entries).toHaveLength(0);
+    });
+
+    test("created entry has entry_type=handoff", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+
+      await runFinish({
+        projectRoot: testDir,
+        id: fuda.id,
+        notes: "Handoff note content",
+      });
+
+      const entries = getEntries(db, fuda.id);
+      expect(entries[0].entryType).toBe(EntryType.HANDOFF);
+    });
+
+    test("created entry is associated with the correct fuda", async () => {
+      const fuda1 = createFuda(db, {
+        title: "Task 1",
+        description: "First task",
+      });
+      const fuda2 = createFuda(db, {
+        title: "Task 2",
+        description: "Second task",
+      });
+
+      await runFinish({
+        projectRoot: testDir,
+        id: fuda1.id,
+        notes: "Notes for task 1",
+      });
+
+      // Entry should be on fuda1
+      const entries1 = getEntries(db, fuda1.id);
+      expect(entries1).toHaveLength(1);
+      expect(entries1[0].content).toBe("Notes for task 1");
+
+      // No entry should be on fuda2
+      const entries2 = getEntries(db, fuda2.id);
+      expect(entries2).toHaveLength(0);
+    });
+
+    test("returns created entry in result", async () => {
+      const fuda = createFuda(db, {
+        title: "Test task",
+        description: "Test description",
+      });
+
+      const result = await runFinish({
+        projectRoot: testDir,
+        id: fuda.id,
+        notes: "Result includes entry",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.ledgerEntry).toBeDefined();
+      expect(result.ledgerEntry!.entryType).toBe(EntryType.HANDOFF);
+      expect(result.ledgerEntry!.content).toBe("Result includes entry");
     });
   });
 });
