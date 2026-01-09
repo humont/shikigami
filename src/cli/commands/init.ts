@@ -142,18 +142,65 @@ ${SHIKIGAMI_DIR}/
   }
 }
 
+const FORCE_CONFIRMATION_MESSAGE = `WARNING: This will permanently delete all fuda data including history and ledger entries.
+The database will be wiped and recreated from scratch.
+AI agents should NOT proceed without explicit user approval.
+
+Type 'y' to confirm: `;
+
 /**
  * Run init with confirmation prompt support for destructive --force operations.
- * This is a stub that will be implemented in a future task.
- * @todo Implement confirmation prompt for init --force (GREEN phase)
+ * When --force is used on an existing database, prompts for confirmation unless --yes is provided.
  */
 export async function runInitWithConfirmation(
-  _options: InitWithConfirmationOptions = {}
+  options: InitWithConfirmationOptions = {}
 ): Promise<InitResult> {
-  // TODO: Implement confirmation prompt for init --force
-  // This stub always fails - implementation pending
-  return {
-    success: false,
-    error: "runInitWithConfirmation not yet implemented",
-  };
+  const projectRoot = options.projectRoot ?? process.cwd();
+  const shikigamiDir = join(projectRoot, SHIKIGAMI_DIR);
+  const dbPath = join(shikigamiDir, DB_FILENAME);
+
+  const dbExists = existsSync(dbPath);
+  const needsConfirmation = options.force && dbExists;
+
+  // In JSON mode, --force requires --yes (no interactive prompt)
+  if (options.json && needsConfirmation && !options.yes) {
+    return {
+      success: false,
+      error: "Cannot use --force with --json mode without --yes flag. Use --yes to confirm destructive operation.",
+    };
+  }
+
+  // If --force is used on existing db and --yes is not provided, prompt for confirmation
+  if (needsConfirmation && !options.yes) {
+    if (!options.confirmFn) {
+      return {
+        success: false,
+        error: "Confirmation required for --force. Use --yes to skip confirmation.",
+      };
+    }
+
+    try {
+      const answer = await options.confirmFn(FORCE_CONFIRMATION_MESSAGE);
+
+      if (answer !== "y") {
+        return {
+          success: false,
+          aborted: true,
+          error: "Operation aborted by user.",
+        };
+      }
+    } catch (error) {
+      // Handle user cancellation (Ctrl+C)
+      if (error instanceof Error && error.name === "ExitPromptError") {
+        return {
+          success: false,
+          cancelled: true,
+        };
+      }
+      throw error;
+    }
+  }
+
+  // Proceed with init
+  return runInit(options);
 }
