@@ -13,6 +13,11 @@ export interface InitOptions {
   noAgentDocs?: boolean;
 }
 
+export interface InitWithConfirmationOptions extends InitOptions {
+  json?: boolean;
+  confirmFn?: (message: string) => Promise<string>;
+}
+
 export interface InitResult {
   success: boolean;
   dbPath?: string;
@@ -21,6 +26,8 @@ export interface InitResult {
   agentDocsCreated?: string[];
   agentDocsSkipped?: string[];
   gitignoreModified?: boolean;
+  aborted?: boolean;
+  cancelled?: boolean;
 }
 
 const SHIKIGAMI_SECTION = `
@@ -133,4 +140,20 @@ ${SHIKIGAMI_DIR}/
       error: error instanceof Error ? error.message : String(error),
     };
   }
+}
+
+/**
+ * Run init with confirmation prompt support for destructive --force operations.
+ * This is a stub that will be implemented in a future task.
+ * @todo Implement confirmation prompt for init --force (GREEN phase)
+ */
+export async function runInitWithConfirmation(
+  _options: InitWithConfirmationOptions = {}
+): Promise<InitResult> {
+  // TODO: Implement confirmation prompt for init --force
+  // This stub always fails - implementation pending
+  return {
+    success: false,
+    error: "runInitWithConfirmation not yet implemented",
+  };
 }

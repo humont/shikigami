@@ -2,7 +2,7 @@ import { describe, expect, test, beforeEach, afterEach } from "bun:test";
 import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import { runInit } from "../../src/cli/commands/init";
+import { runInit, runInitWithConfirmation } from "../../src/cli/commands/init";
 import { AGENT_INSTRUCTIONS_CONTENT } from "../../src/content/agent-instructions";
 
 describe("init command", () => {
@@ -393,6 +393,213 @@ Key commands:
       expect(content).toContain("node_modules/\n");
       expect(content).toContain("# Shikigami");
       expect(content).toContain(".shikigami/");
+    });
+  });
+
+  describe("--force confirmation prompt", () => {
+    test("prompts for confirmation before wiping db with --force", async () => {
+      // First init
+      await runInit({ projectRoot: testDir });
+
+      let promptWasCalled = false;
+      let receivedMessage = "";
+
+      const mockConfirm = async (message: string) => {
+        promptWasCalled = true;
+        receivedMessage = message;
+        return "y";
+      };
+
+      await runInitWithConfirmation({
+        projectRoot: testDir,
+        force: true,
+        confirmFn: mockConfirm,
+      });
+
+      expect(promptWasCalled).toBe(true);
+      expect(receivedMessage).toBeTruthy();
+    });
+
+    test("confirmation message clearly states database will be wiped", async () => {
+      await runInit({ projectRoot: testDir });
+
+      let receivedMessage = "";
+
+      const mockConfirm = async (message: string) => {
+        receivedMessage = message;
+        return "y";
+      };
+
+      await runInitWithConfirmation({
+        projectRoot: testDir,
+        force: true,
+        confirmFn: mockConfirm,
+      });
+
+      expect(receivedMessage.toLowerCase()).toContain("wipe");
+      expect(receivedMessage.toLowerCase()).toContain("database");
+    });
+
+    test("confirmation message includes explicit warning for AI agents", async () => {
+      await runInit({ projectRoot: testDir });
+
+      let receivedMessage = "";
+
+      const mockConfirm = async (message: string) => {
+        receivedMessage = message;
+        return "y";
+      };
+
+      await runInitWithConfirmation({
+        projectRoot: testDir,
+        force: true,
+        confirmFn: mockConfirm,
+      });
+
+      expect(receivedMessage).toContain("WARNING");
+      expect(receivedMessage).toContain("permanently delete all fuda data");
+      expect(receivedMessage).toContain("AI agents should NOT proceed without explicit user approval");
+    });
+
+    test("answering 'y' proceeds with init", async () => {
+      await runInit({ projectRoot: testDir });
+
+      const mockConfirm = async () => "y";
+
+      const result = await runInitWithConfirmation({
+        projectRoot: testDir,
+        force: true,
+        confirmFn: mockConfirm,
+      });
+
+      expect(result.success).toBe(true);
+      expect(existsSync(join(testDir, ".shikigami", "shiki.db"))).toBe(true);
+    });
+
+    test("answering 'n' aborts the operation", async () => {
+      await runInit({ projectRoot: testDir });
+
+      const mockConfirm = async () => "n";
+
+      const result = await runInitWithConfirmation({
+        projectRoot: testDir,
+        force: true,
+        confirmFn: mockConfirm,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.aborted).toBe(true);
+      expect(result.error).toContain("aborted");
+    });
+
+    test("answering anything other than 'y' aborts the operation", async () => {
+      await runInit({ projectRoot: testDir });
+
+      for (const answer of ["no", "N", "yes", "maybe", "", " "]) {
+        const mockConfirm = async () => answer;
+
+        const result = await runInitWithConfirmation({
+          projectRoot: testDir,
+          force: true,
+          confirmFn: mockConfirm,
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.aborted).toBe(true);
+      }
+    });
+
+    test("--yes flag skips confirmation prompt", async () => {
+      await runInit({ projectRoot: testDir });
+
+      let promptWasCalled = false;
+
+      const mockConfirm = async () => {
+        promptWasCalled = true;
+        return "y";
+      };
+
+      const result = await runInitWithConfirmation({
+        projectRoot: testDir,
+        force: true,
+        yes: true,
+        confirmFn: mockConfirm,
+      });
+
+      expect(promptWasCalled).toBe(false);
+      expect(result.success).toBe(true);
+    });
+
+    test("--json mode without --yes flag returns error", async () => {
+      await runInit({ projectRoot: testDir });
+
+      const result = await runInitWithConfirmation({
+        projectRoot: testDir,
+        force: true,
+        json: true,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("--yes");
+      expect(result.error).toContain("--json");
+    });
+
+    test("--json mode with --yes flag proceeds without prompt", async () => {
+      await runInit({ projectRoot: testDir });
+
+      let promptWasCalled = false;
+
+      const mockConfirm = async () => {
+        promptWasCalled = true;
+        return "y";
+      };
+
+      const result = await runInitWithConfirmation({
+        projectRoot: testDir,
+        force: true,
+        yes: true,
+        json: true,
+        confirmFn: mockConfirm,
+      });
+
+      expect(promptWasCalled).toBe(false);
+      expect(result.success).toBe(true);
+    });
+
+    test("does not prompt when --force is not used", async () => {
+      let promptWasCalled = false;
+
+      const mockConfirm = async () => {
+        promptWasCalled = true;
+        return "y";
+      };
+
+      const result = await runInitWithConfirmation({
+        projectRoot: testDir,
+        confirmFn: mockConfirm,
+      });
+
+      expect(promptWasCalled).toBe(false);
+      expect(result.success).toBe(true);
+    });
+
+    test("handles user cancellation (Ctrl+C) gracefully", async () => {
+      await runInit({ projectRoot: testDir });
+
+      const mockConfirm = async () => {
+        const error = new Error("User force closed the prompt with SIGINT");
+        error.name = "ExitPromptError";
+        throw error;
+      };
+
+      const result = await runInitWithConfirmation({
+        projectRoot: testDir,
+        force: true,
+        confirmFn: mockConfirm,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.cancelled).toBe(true);
     });
   });
 });
