@@ -31,7 +31,7 @@ describe("CLI flag integration tests", () => {
       });
 
       const result = await runCli(
-        ["finish", fuda.id, "--notes", "Completed the feature, all tests pass"],
+        ["finish", fuda.id, "--commit-hash", "abc1234", "--notes", "Completed the feature, all tests pass"],
         { cwd: testDir }
       );
 
@@ -47,7 +47,7 @@ describe("CLI flag integration tests", () => {
       });
 
       const result = await runCli(
-        ["--json", "finish", fuda.id, "--notes", "My handoff message"],
+        ["--json", "finish", fuda.id, "--commit-hash", "abc1234", "--notes", "My handoff message"],
         { cwd: testDir }
       );
 
@@ -64,7 +64,7 @@ describe("CLI flag integration tests", () => {
         description: "Test description",
       });
 
-      const result = await runCli(["--json", "finish", fuda.id], { cwd: testDir });
+      const result = await runCli(["--json", "finish", fuda.id, "--commit-hash", "abc1234"], { cwd: testDir });
 
       expect(result.exitCode).toBe(0);
       const parsed = JSON.parse(result.stdout);
@@ -301,7 +301,7 @@ describe("CLI flag integration tests", () => {
         description: "Test description",
       });
 
-      const result = await runCli(["--json", "finish", fuda.id], { cwd: testDir });
+      const result = await runCli(["--json", "finish", fuda.id, "--commit-hash", "abc1234"], { cwd: testDir });
 
       expect(result.exitCode).toBe(0);
       expect(() => JSON.parse(result.stdout)).not.toThrow();
