@@ -218,7 +218,7 @@ describe("migrations", () => {
       expect(fuda.status).toBe("ready");
     });
 
-    test("removes display_id from fuda_search FTS table", async () => {
+    test("fuda_fts table does not contain display_id", async () => {
       const { migration: init } = await import("../../src/db/migrations/0001_init");
       const { migration: auditLog } = await import("../../src/db/migrations/0002_audit_log");
       const { migration: fudaLedger } = await import("../../src/db/migrations/0003_fuda_ledger");
@@ -236,7 +236,7 @@ describe("migrations", () => {
       // Verify display_id is not in the FTS table columns
       // FTS5 tables don't show in PRAGMA table_info, so we check the table schema
       const schema = db
-        .query("SELECT sql FROM sqlite_master WHERE type='table' AND name='fuda_search'")
+        .query("SELECT sql FROM sqlite_master WHERE type='table' AND name='fuda_fts'")
         .get() as { sql: string } | null;
 
       expect(schema).toBeDefined();
