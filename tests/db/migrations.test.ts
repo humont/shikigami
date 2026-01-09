@@ -120,4 +120,127 @@ describe("migrations", () => {
     expect(status[0].name).toBe("001_create_foo");
     expect(status[0].appliedAt).toBeDefined();
   });
+
+  describe("0006_remove_display_id migration", () => {
+    // Helper to get column names from a table
+    const getColumnNames = (database: Database, tableName: string): string[] => {
+      const columns = database.query(`PRAGMA table_info(${tableName})`).all() as { name: string }[];
+      return columns.map((c) => c.name);
+    };
+
+    test("removes display_id column from fuda table", async () => {
+      // Import the actual migrations
+      const { migration: init } = await import("../../src/db/migrations/0001_init");
+      const { migration: auditLog } = await import("../../src/db/migrations/0002_audit_log");
+      const { migration: fudaLedger } = await import("../../src/db/migrations/0003_fuda_ledger");
+      const { migration: fts5Search } = await import("../../src/db/migrations/0004_fts5_search");
+      const { migration: renamePendingToBlocked } = await import(
+        "../../src/db/migrations/0005_rename_pending_to_blocked"
+      );
+      const { migration: removeDisplayId } = await import(
+        "../../src/db/migrations/0006_remove_display_id"
+      );
+
+      // Run all migrations up to and including the display_id removal
+      const migrations = [init, auditLog, fudaLedger, fts5Search, renamePendingToBlocked, removeDisplayId];
+      runMigrations(db, migrations);
+
+      // Verify display_id column no longer exists
+      const columns = getColumnNames(db, "fuda");
+      expect(columns).not.toContain("display_id");
+    });
+
+    test("preserves other columns after migration", async () => {
+      const { migration: init } = await import("../../src/db/migrations/0001_init");
+      const { migration: auditLog } = await import("../../src/db/migrations/0002_audit_log");
+      const { migration: fudaLedger } = await import("../../src/db/migrations/0003_fuda_ledger");
+      const { migration: fts5Search } = await import("../../src/db/migrations/0004_fts5_search");
+      const { migration: renamePendingToBlocked } = await import(
+        "../../src/db/migrations/0005_rename_pending_to_blocked"
+      );
+      const { migration: removeDisplayId } = await import(
+        "../../src/db/migrations/0006_remove_display_id"
+      );
+
+      const migrations = [init, auditLog, fudaLedger, fts5Search, renamePendingToBlocked, removeDisplayId];
+      runMigrations(db, migrations);
+
+      // Verify essential columns still exist
+      const columns = getColumnNames(db, "fuda");
+      expect(columns).toContain("id");
+      expect(columns).toContain("title");
+      expect(columns).toContain("description");
+      expect(columns).toContain("status");
+      expect(columns).toContain("spirit_type");
+      expect(columns).toContain("prd_id");
+      expect(columns).toContain("priority");
+      expect(columns).toContain("created_at");
+      expect(columns).toContain("updated_at");
+    });
+
+    test("preserves existing fuda data after migration", async () => {
+      const { migration: init } = await import("../../src/db/migrations/0001_init");
+      const { migration: auditLog } = await import("../../src/db/migrations/0002_audit_log");
+      const { migration: fudaLedger } = await import("../../src/db/migrations/0003_fuda_ledger");
+      const { migration: fts5Search } = await import("../../src/db/migrations/0004_fts5_search");
+      const { migration: renamePendingToBlocked } = await import(
+        "../../src/db/migrations/0005_rename_pending_to_blocked"
+      );
+      const { migration: removeDisplayId } = await import(
+        "../../src/db/migrations/0006_remove_display_id"
+      );
+
+      // Run migrations up to before the display_id removal
+      const migrationsBefore = [init, auditLog, fudaLedger, fts5Search, renamePendingToBlocked];
+      runMigrations(db, migrationsBefore);
+
+      // Insert test data with display_id
+      db.run(`
+        INSERT INTO fuda (id, display_id, title, description, status, spirit_type, priority)
+        VALUES ('test-id-1', 'proj.1', 'Test Title', 'Test Description', 'ready', 'shikigami', 0)
+      `);
+
+      // Run the display_id removal migration
+      runMigrations(db, [...migrationsBefore, removeDisplayId]);
+
+      // Verify data is preserved
+      const fuda = db.query("SELECT * FROM fuda WHERE id = 'test-id-1'").get() as {
+        id: string;
+        title: string;
+        description: string;
+        status: string;
+      };
+
+      expect(fuda).toBeDefined();
+      expect(fuda.id).toBe("test-id-1");
+      expect(fuda.title).toBe("Test Title");
+      expect(fuda.description).toBe("Test Description");
+      expect(fuda.status).toBe("ready");
+    });
+
+    test("removes display_id from fuda_search FTS table", async () => {
+      const { migration: init } = await import("../../src/db/migrations/0001_init");
+      const { migration: auditLog } = await import("../../src/db/migrations/0002_audit_log");
+      const { migration: fudaLedger } = await import("../../src/db/migrations/0003_fuda_ledger");
+      const { migration: fts5Search } = await import("../../src/db/migrations/0004_fts5_search");
+      const { migration: renamePendingToBlocked } = await import(
+        "../../src/db/migrations/0005_rename_pending_to_blocked"
+      );
+      const { migration: removeDisplayId } = await import(
+        "../../src/db/migrations/0006_remove_display_id"
+      );
+
+      const migrations = [init, auditLog, fudaLedger, fts5Search, renamePendingToBlocked, removeDisplayId];
+      runMigrations(db, migrations);
+
+      // Verify display_id is not in the FTS table columns
+      // FTS5 tables don't show in PRAGMA table_info, so we check the table schema
+      const schema = db
+        .query("SELECT sql FROM sqlite_master WHERE type='table' AND name='fuda_search'")
+        .get() as { sql: string } | null;
+
+      expect(schema).toBeDefined();
+      expect(schema!.sql).not.toContain("display_id");
+    });
+  });
 });
