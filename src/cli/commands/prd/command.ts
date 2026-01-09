@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { runPrdInit } from "./init";
 import { runPrdList, type StatusBreakdown } from "./list";
 import { runPrdShow, type PrdFudaSummary } from "./show";
+import { runPrdCheck } from "./check";
 import { output, outputError } from "../../../utils/output";
 
 // ANSI color codes
@@ -118,6 +119,32 @@ export function createPrdCommand(getJson: () => boolean): Command {
       } else {
         outputError(result.error!, isJson);
         process.exit(1);
+      }
+    });
+
+  // prd check
+  prd
+    .command("check")
+    .description("Validate PRD references (CI-friendly, exits non-zero on orphans)")
+    .action(async () => {
+      const isJson = getJson();
+      const result = await runPrdCheck({});
+
+      if (isJson) {
+        output(result, true);
+      } else {
+        console.log(result.message);
+
+        if (result.orphans && result.orphans.length > 0) {
+          console.log("\nOrphan PRD references:");
+          result.orphans.forEach((o) => {
+            console.log(`  ${colors.yellow}${o.prdId}${colors.reset}  (${o.fudaCount} fuda)`);
+          });
+        }
+      }
+
+      if (!result.success) {
+        process.exit(result.exitCode);
       }
     });
 

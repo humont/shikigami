@@ -12,3 +12,8 @@ export {
   type PrdShowResult,
   type PrdFudaSummary,
 } from "./show";
+export {
+  runPrdCheck,
+  type PrdCheckOptions,
+  type PrdCheckResult,
+} from "./check";
