@@ -49,3 +49,4 @@ export function initializeDb(db: Database): void {
 }
 
 export { Database, allMigrations };
+export { searchFuda, searchLedger, searchAll, type SearchAllResult } from "./search";
