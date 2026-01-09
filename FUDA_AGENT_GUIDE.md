@@ -8,7 +8,7 @@ Fuda is a task management system designed for AI coding agents to work in parall
 A **fuda** is a task unit containing:
 - **title**: Brief description of the task
 - **description**: Detailed requirements and context
-- **status**: Current state (`pending`, `ready`, `in_progress`, `in_review`, `blocked`, `failed`, `done`)
+- **status**: Current state (`blocked`, `ready`, `in_progress`, `in_review`, `failed`, `done`)
 - **priority**: Numeric priority (higher = more important)
 - **spiritType**: Agent type suited for the task (`shikigami`, `tengu`, `kitsune`)
 
@@ -90,7 +90,7 @@ After completing a task, dependent tasks may become unblocked:
 ```bash
 shiki ready --json
 ```
-The system automatically promotes `pending` tasks to `ready` when their dependencies are satisfied.
+The system automatically promotes `blocked` tasks to `ready` when their dependencies are satisfied.
 
 ## CLI Reference for Agents
 
@@ -152,11 +152,10 @@ shiki status --json
 Returns counts by status:
 ```json
 {
-  "pending": 5,
+  "blocked": 8,
   "ready": 2,
   "inProgress": 1,
   "inReview": 0,
-  "blocked": 3,
   "failed": 0,
   "done": 10,
   "total": 21

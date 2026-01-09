@@ -18,7 +18,7 @@ const mockFudas: Fuda[] = [
     prdId: null,
     title: "First task",
     description: "Description 1",
-    status: FudaStatus.PENDING,
+    status: FudaStatus.BLOCKED,
     spiritType: SpiritType.SHIKIGAMI,
     assignedSpiritId: null,
     outputCommitHash: null,
@@ -472,7 +472,7 @@ describe("App component", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const output = lastFrame() || "";
-      expect(output).toContain("pending");
+      expect(output).toContain("blocked");
       expect(output).toContain("ready");
       expect(output).toContain("in_progress");
       unmount();
@@ -651,7 +651,7 @@ describe("App component", () => {
 
       const output = lastFrame() || "";
       // First fuda has pending status
-      expect(output).toContain("pending");
+      expect(output).toContain("blocked");
       unmount();
     });
 

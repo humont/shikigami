@@ -65,7 +65,7 @@ describe("add command", () => {
 
       expect(result.success).toBe(true);
       // Fuda with blocking dependencies stay pending
-      expect(result.fuda!.status).toBe(FudaStatus.PENDING);
+      expect(result.fuda!.status).toBe(FudaStatus.BLOCKED);
     });
 
     test("creates fuda with default spirit type of shikigami", async () => {

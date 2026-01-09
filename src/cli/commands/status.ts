@@ -9,11 +9,10 @@ export interface StatusOptions {
 }
 
 export interface StatusCounts {
-  pending: number;
+  blocked: number;
   ready: number;
   inProgress: number;
   inReview: number;
-  blocked: number;
   failed: number;
   done: number;
   total: number;
@@ -59,11 +58,10 @@ export async function runStatus(options: StatusOptions = {}): Promise<StatusResu
     }
 
     const status: StatusCounts = {
-      pending: counts[FudaStatus.PENDING] ?? 0,
+      blocked: counts[FudaStatus.BLOCKED] ?? 0,
       ready: counts[FudaStatus.READY] ?? 0,
       inProgress: counts[FudaStatus.IN_PROGRESS] ?? 0,
       inReview: counts[FudaStatus.IN_REVIEW] ?? 0,
-      blocked: counts[FudaStatus.BLOCKED] ?? 0,
       failed: counts[FudaStatus.FAILED] ?? 0,
       done: counts[FudaStatus.DONE] ?? 0,
       total: 0,

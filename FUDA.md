@@ -40,11 +40,10 @@ Fuda are work units that spirits execute. Each fuda represents a **declarative r
 ### FudaStatus
 
 ```
-pending      -> Not ready (has unmet dependencies)
+blocked      -> Not ready (has unmet dependencies or manually blocked)
 ready        -> All dependencies met, can be picked up by a spirit
 in_progress  -> Currently being worked on
 in_review    -> Work done, awaiting tengu review
-blocked      -> Manually blocked or waiting on external input
 failed       -> Failed after max retries
 done         -> Successfully completed
 ```
@@ -53,7 +52,7 @@ done         -> Successfully completed
 
 ```
                     +-------------+
-                    |   pending   |
+                    |   blocked   |
                     +------+------+
                            | (all deps done)
                            v
@@ -69,13 +68,8 @@ done         -> Successfully completed
          |        +--------+--------+            |
          |        v        v        v            |
          |   +--------+ +------+ +--------+      |
-         |   |in_review| | done | | failed |-----+
-         |   +----+---+ +------+ +--------+
-         |        |
-         |        v
-         |   +-------------+
-         +---|   blocked   |
-             +-------------+
+         +---|in_review| | done | | failed |-----+
+             +----+---+ +------+ +--------+
 ```
 
 ---
@@ -102,7 +96,7 @@ done         -> Successfully completed
 ### Readiness Logic
 
 A fuda becomes `ready` when:
-1. Its status is `pending`
+1. Its status is `blocked`
 2. ALL `blocks` dependencies have status `done`
 3. ALL `parent-child` ancestors have status `done` (transitive)
 
@@ -263,7 +257,7 @@ getFudaDependenciesFull(fudaId): FudaDependency[] // Full objects
 getBlockingDependencies(fudaId): FudaDependency[] // Only blocking types
 getFudaDependents(fudaId): string[]             // What depends on this
 areAllDependenciesDone(fudaId): boolean
-updateReadyFuda(): number                       // Batch update pending->ready
+updateReadyFuda(): number                       // Batch update blocked->ready
 ```
 
 ### Soft Delete
@@ -314,7 +308,7 @@ CREATE TABLE fuda (
   prd_id TEXT REFERENCES prds(id),
   title TEXT NOT NULL,
   description TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'pending',
+  status TEXT NOT NULL DEFAULT 'blocked',
   spirit_type TEXT NOT NULL DEFAULT 'shikigami',
   assigned_spirit_id TEXT,
   output_commit_hash TEXT,

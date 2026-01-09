@@ -157,7 +157,7 @@ describe("CLI flag integration tests", () => {
       });
       updateFudaStatus(db, inProgress.id, FudaStatus.IN_PROGRESS);
 
-      const result = await runCli(["--json", "list", "--status", "pending"], {
+      const result = await runCli(["--json", "list", "--status", "blocked"], {
         cwd: testDir,
       });
 
@@ -291,7 +291,7 @@ describe("CLI flag integration tests", () => {
       expect(() => JSON.parse(result.stdout)).not.toThrow();
       const parsed = JSON.parse(result.stdout);
       expect(parsed).toHaveProperty("total");
-      expect(parsed).toHaveProperty("pending");
+      expect(parsed).toHaveProperty("blocked");
       expect(parsed).toHaveProperty("ready");
     });
 

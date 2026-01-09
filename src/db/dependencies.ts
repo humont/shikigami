@@ -87,7 +87,7 @@ export function updateReadyFuda(db: Database): number {
   // 3. It has no blocking dependencies OR all blocking dependencies are done
 
   const whereClause = `
-    status = 'pending'
+    status = 'blocked'
     AND deleted_at IS NULL
     AND id NOT IN (
       SELECT DISTINCT fd.fuda_id

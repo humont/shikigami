@@ -16,7 +16,7 @@ const mockAuditEntries: AuditEntry[] = [
     fudaId: "sk-test1",
     operation: AuditOperation.UPDATE,
     field: "status",
-    oldValue: "pending",
+    oldValue: "blocked",
     newValue: "in_progress",
     actor: "agent-123",
     timestamp: new Date("2026-01-06T10:00:00Z"),

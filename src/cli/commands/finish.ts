@@ -83,7 +83,7 @@ export async function runFinish(options: FinishOptions): Promise<FinishResult> {
     const dependentIds = getFudaDependents(db, fuda.id);
     const pendingDependentIds = dependentIds.filter((id) => {
       const dependent = getFuda(db, id);
-      return dependent?.status === FudaStatus.PENDING;
+      return dependent?.status === FudaStatus.BLOCKED;
     });
 
     // Update status to done

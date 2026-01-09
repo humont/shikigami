@@ -173,11 +173,10 @@ describe("formatted output integration tests", () => {
       const result = await runCli(["status"], { cwd: testDir });
 
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain("Pending:");
+      expect(result.stdout).toContain("Blocked:");
       expect(result.stdout).toContain("Ready:");
       expect(result.stdout).toContain("In Progress:");
       expect(result.stdout).toContain("In Review:");
-      expect(result.stdout).toContain("Blocked:");
       expect(result.stdout).toContain("Failed:");
       expect(result.stdout).toContain("Done:");
       expect(result.stdout).toContain("Total:");
@@ -193,7 +192,7 @@ describe("formatted output integration tests", () => {
 
       expect(result.exitCode).toBe(0);
       // Check that each line has a number
-      expect(result.stdout).toMatch(/Pending:\s+\d+/);
+      expect(result.stdout).toMatch(/Blocked:\s+\d+/);
       expect(result.stdout).toMatch(/Total:\s+\d+/);
     });
 

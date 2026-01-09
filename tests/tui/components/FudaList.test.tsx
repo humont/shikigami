@@ -12,7 +12,7 @@ const mockFudas: Fuda[] = [
     prdId: null,
     title: "First task",
     description: "Description 1",
-    status: FudaStatus.PENDING,
+    status: FudaStatus.BLOCKED,
     spiritType: SpiritType.SHIKIGAMI,
     assignedSpiritId: null,
     outputCommitHash: null,
@@ -98,7 +98,7 @@ describe("FudaList component", () => {
       );
 
       const output = lastFrame();
-      expect(output).toContain("pending");
+      expect(output).toContain("blocked");
       expect(output).toContain("ready");
       expect(output).toContain("in_progress");
     });
@@ -376,7 +376,7 @@ describe("FudaList component", () => {
   describe("status colors", () => {
     test("pending status displays with gray color", () => {
       const pendingFuda: Fuda[] = [
-        { ...mockFudas[0], status: FudaStatus.PENDING },
+        { ...mockFudas[0], status: FudaStatus.BLOCKED },
       ];
 
       const { lastFrame } = render(
@@ -385,7 +385,7 @@ describe("FudaList component", () => {
 
       // The output should contain the status text
       const output = lastFrame();
-      expect(output).toContain("pending");
+      expect(output).toContain("blocked");
     });
 
     test("ready status displays with cyan color", () => {
@@ -438,7 +438,7 @@ describe("FudaList component", () => {
 
     test("different statuses render with different visual styles", () => {
       const pendingFuda: Fuda[] = [
-        { ...mockFudas[0], status: FudaStatus.PENDING },
+        { ...mockFudas[0], status: FudaStatus.BLOCKED },
       ];
       const readyFuda: Fuda[] = [{ ...mockFudas[0], status: FudaStatus.READY }];
       const doneFuda: Fuda[] = [{ ...mockFudas[0], status: FudaStatus.DONE }];

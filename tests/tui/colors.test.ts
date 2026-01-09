@@ -4,8 +4,8 @@ import { FudaStatus } from "../../src/types";
 
 describe("TUI colors utility", () => {
   describe("getStatusColor", () => {
-    test("returns color for 'pending' status", () => {
-      const color = getStatusColor(FudaStatus.PENDING);
+    test("returns color for 'blocked' status", () => {
+      const color = getStatusColor(FudaStatus.BLOCKED);
       expect(color).toBeDefined();
       expect(typeof color).toBe("string");
     });
@@ -75,7 +75,7 @@ describe("TUI colors utility", () => {
 
   describe("color output format", () => {
     test("pending status uses a neutral/gray color", () => {
-      const color = getStatusColor(FudaStatus.PENDING);
+      const color = getStatusColor(FudaStatus.BLOCKED);
       // Gray tones for pending/waiting states
       expect(color).toMatch(/^(gray|grey|#[89ABCabc][0-9A-Fa-f]{5})$/);
     });

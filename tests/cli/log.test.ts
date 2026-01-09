@@ -50,7 +50,7 @@ describe("log command", () => {
         fudaId: fuda.id,
         operation: AuditOperation.UPDATE,
         field: "status",
-        oldValue: "pending",
+        oldValue: "blocked",
         newValue: "in_progress",
         actor: "agent-123",
       });
@@ -144,7 +144,7 @@ describe("log command", () => {
       const fuda2 = createFuda(db, { title: "Task 2", description: "Desc" });
 
       // createFuda now logs automatically (2 entries already)
-      logAuditEntry(db, { fudaId: fuda1.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "pending", newValue: "ready", actor: "agent" });
+      logAuditEntry(db, { fudaId: fuda1.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "blocked", newValue: "ready", actor: "agent" });
 
       const result = await runLogAll({ projectRoot: testDir });
 
@@ -157,7 +157,7 @@ describe("log command", () => {
       const fuda2 = createFuda(db, { title: "Task 2", description: "Desc" });
 
       // createFuda now logs automatically (2 entries already)
-      logAuditEntry(db, { fudaId: fuda1.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "pending", newValue: "ready", actor: "agent" });
+      logAuditEntry(db, { fudaId: fuda1.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "blocked", newValue: "ready", actor: "agent" });
 
       const result = await runLogAll({ projectRoot: testDir });
 
@@ -231,7 +231,7 @@ describe("log command", () => {
         fudaId: fuda.id,
         operation: AuditOperation.UPDATE,
         field: "status",
-        oldValue: "pending",
+        oldValue: "blocked",
         newValue: "ready",
         actor: "agent-123",
       });

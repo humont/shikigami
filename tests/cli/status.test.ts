@@ -31,7 +31,7 @@ describe("status command", () => {
       const result = await runStatus({ projectRoot: testDir });
 
       expect(result.success).toBe(true);
-      expect(result.status?.pending).toBe(2);
+      expect(result.status?.blocked).toBe(2);
       expect(result.status?.total).toBe(2);
     });
 
@@ -132,7 +132,7 @@ describe("status command", () => {
       const result = await runStatus({ projectRoot: testDir });
 
       expect(result.success).toBe(true);
-      expect(result.status?.pending).toBe(1);
+      expect(result.status?.blocked).toBe(1);
       expect(result.status?.ready).toBe(1);
       expect(result.status?.inProgress).toBe(1);
       expect(result.status?.done).toBe(1);
@@ -150,11 +150,10 @@ describe("status command", () => {
       expect(result.success).toBe(true);
       const status = result.status!;
       const sumOfStatuses =
-        status.pending +
+        status.blocked +
         status.ready +
         status.inProgress +
         status.inReview +
-        status.blocked +
         status.failed +
         status.done;
       expect(status.total).toBe(sumOfStatuses);
@@ -166,7 +165,7 @@ describe("status command", () => {
       const result = await runStatus({ projectRoot: testDir });
 
       expect(result.success).toBe(true);
-      expect(result.status?.pending).toBe(0);
+      expect(result.status?.blocked).toBe(0);
       expect(result.status?.ready).toBe(0);
       expect(result.status?.inProgress).toBe(0);
       expect(result.status?.inReview).toBe(0);
@@ -190,7 +189,7 @@ describe("status command", () => {
       const result = await runStatus({ projectRoot: testDir });
 
       expect(result.success).toBe(true);
-      expect(result.status?.pending).toBe(1);
+      expect(result.status?.blocked).toBe(1);
       expect(result.status?.total).toBe(1);
     });
 
@@ -233,7 +232,7 @@ describe("status command", () => {
     test("status object contains all expected fields", async () => {
       const result = await runStatus({ projectRoot: testDir });
 
-      expect(result.status).toHaveProperty("pending");
+      expect(result.status).toHaveProperty("blocked");
       expect(result.status).toHaveProperty("ready");
       expect(result.status).toHaveProperty("inProgress");
       expect(result.status).toHaveProperty("inReview");
@@ -246,7 +245,7 @@ describe("status command", () => {
     test("all status counts are numbers", async () => {
       const result = await runStatus({ projectRoot: testDir });
 
-      expect(typeof result.status?.pending).toBe("number");
+      expect(typeof result.status?.blocked).toBe("number");
       expect(typeof result.status?.ready).toBe("number");
       expect(typeof result.status?.inProgress).toBe("number");
       expect(typeof result.status?.inReview).toBe("number");

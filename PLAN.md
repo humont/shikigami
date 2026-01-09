@@ -116,7 +116,7 @@ tests/
     - Test `getBlockingDependencies()` filters to blocks/parent-child
     - Test `areAllDependenciesDone()` checks all blocking deps
     - Test multi-parent: C depends on A AND B
-    - Test `updateReadyFuda()` transitions pending→ready
+    - Test `updateReadyFuda()` transitions blocked→ready
 
 12. **Implement src/db/dependencies.ts**
 

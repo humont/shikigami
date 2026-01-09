@@ -11,7 +11,7 @@ const mockAuditEntries: AuditEntry[] = [
     fudaId: "sk-test1",
     operation: AuditOperation.UPDATE,
     field: "status",
-    oldValue: "pending",
+    oldValue: "blocked",
     newValue: "in_progress",
     actor: "agent-123",
     timestamp: new Date("2026-01-06T10:00:00Z"),
@@ -136,7 +136,7 @@ describe("LogView component", () => {
           fudaId: "sk-test1",
           operation: AuditOperation.UPDATE,
           field: "status",
-          oldValue: "pending",
+          oldValue: "blocked",
           newValue: "ready",
           actor: "agent",
           timestamp: new Date(),
@@ -216,7 +216,7 @@ describe("LogView component", () => {
           fudaId: "sk-test1",
           operation: AuditOperation.UPDATE,
           field: "status",
-          oldValue: "pending",
+          oldValue: "blocked",
           newValue: "ready",
           actor: "agent",
           timestamp: new Date(),
@@ -228,7 +228,7 @@ describe("LogView component", () => {
       );
 
       const output = lastFrame();
-      expect(output).toContain("pending");
+      expect(output).toContain("blocked");
       expect(output).toContain("ready");
     });
 
@@ -505,7 +505,7 @@ describe("LogView component", () => {
           fudaId: "sk-test1",
           operation: AuditOperation.UPDATE,
           field: "status",
-          oldValue: "pending",
+          oldValue: "blocked",
           newValue: "ready",
           actor: "agent",
           timestamp: new Date(),
@@ -561,7 +561,7 @@ describe("LogView component", () => {
           fudaId: "sk-test1",
           operation: AuditOperation.UPDATE,
           field: "status",
-          oldValue: "pending",
+          oldValue: "blocked",
           newValue: "ready",
           actor: "cli",
           timestamp: new Date(),
@@ -627,7 +627,7 @@ describe("LogView component", () => {
         fudaId: `sk-test${i}`,
         operation: AuditOperation.UPDATE,
         field: "status",
-        oldValue: "pending",
+        oldValue: "blocked",
         newValue: "ready",
         actor: `agent-${i}`,
         timestamp: new Date(),

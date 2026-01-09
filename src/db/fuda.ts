@@ -101,9 +101,9 @@ export function createFuda(db: Database, input: CreateFudaInput, actor?: string)
   const priority = input.priority ?? 0;
 
   db.run(
-    `INSERT INTO fuda (id, display_id, prd_id, title, description, spirit_type, priority, parent_fuda_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, displayId, input.prdId ?? null, input.title, input.description, spiritType, priority, input.parentFudaId ?? null]
+    `INSERT INTO fuda (id, display_id, prd_id, title, description, status, spirit_type, priority, parent_fuda_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, displayId, input.prdId ?? null, input.title, input.description, FudaStatus.BLOCKED, spiritType, priority, input.parentFudaId ?? null]
   );
 
   logAuditEntry(db, {
@@ -237,7 +237,7 @@ export function claimFuda(db: Database, id: string, spiritId: string | null, act
          updated_at = datetime('now')
      WHERE id = ?
        AND deleted_at IS NULL
-       AND status IN ('pending', 'ready')`,
+       AND status IN ('blocked', 'ready')`,
     [spiritId, id]
   );
 

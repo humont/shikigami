@@ -10,13 +10,13 @@ describe("StatusPicker component", () => {
       const { lastFrame } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={() => {}}
         />
       );
 
       const output = lastFrame();
-      expect(output).toContain("pending");
+      expect(output).toContain("blocked");
       expect(output).toContain("ready");
       expect(output).toContain("in_progress");
       expect(output).toContain("in_review");
@@ -29,7 +29,7 @@ describe("StatusPicker component", () => {
       const { lastFrame: pendingFrame } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={() => {}}
         />
       );
@@ -71,7 +71,7 @@ describe("StatusPicker component", () => {
       const { stdin } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={handleChange}
         />
       );
@@ -92,7 +92,7 @@ describe("StatusPicker component", () => {
       const { stdin } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={handleChange}
         />
       );
@@ -114,7 +114,7 @@ describe("StatusPicker component", () => {
       const { stdin } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={handleChange}
         />
       );
@@ -138,7 +138,7 @@ describe("StatusPicker component", () => {
       const { stdin } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={handleChange}
         />
       );
@@ -157,7 +157,7 @@ describe("StatusPicker component", () => {
       const { stdin } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={handleChange}
         />
       );
@@ -171,7 +171,7 @@ describe("StatusPicker component", () => {
       const { stdin, lastFrame } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={() => {}}
         />
       );
@@ -189,7 +189,7 @@ describe("StatusPicker component", () => {
       const { stdin, lastFrame } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={() => {}}
         />
       );
@@ -214,7 +214,7 @@ describe("StatusPicker component", () => {
       const { stdin } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={handleChange}
         />
       );
@@ -236,7 +236,7 @@ describe("StatusPicker component", () => {
       const { stdin } = render(
         <StatusPicker
           fudaId="sk-test123"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={handleChange}
         />
       );
@@ -256,7 +256,7 @@ describe("StatusPicker component", () => {
       const { stdin } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={handleChange}
         />
       );
@@ -278,7 +278,7 @@ describe("StatusPicker component", () => {
       const { stdin } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={handleChange}
         />
       );
@@ -301,7 +301,7 @@ describe("StatusPicker component", () => {
       const { stdin } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={() => {}}
           onCancel={handleCancel}
         />
@@ -316,7 +316,7 @@ describe("StatusPicker component", () => {
       const { stdin, lastFrame } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={() => {}}
         />
       );
@@ -332,7 +332,7 @@ describe("StatusPicker component", () => {
       const { lastFrame } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={() => {}}
         />
       );
@@ -352,7 +352,7 @@ describe("StatusPicker component", () => {
       const { stdin } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={handleChange}
         />
       );
@@ -366,7 +366,7 @@ describe("StatusPicker component", () => {
       const { stdin: stdin2 } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={handleChange}
         />
       );
@@ -375,7 +375,7 @@ describe("StatusPicker component", () => {
 
       // Should have selected different statuses
       expect(firstSelection).not.toBeNull();
-      expect(firstSelection!).toBe(FudaStatus.PENDING);
+      expect(firstSelection!).toBe(FudaStatus.BLOCKED);
       expect(receivedStatus).not.toBeNull();
       expect(receivedStatus!).toBe(FudaStatus.READY);
     });
@@ -386,7 +386,7 @@ describe("StatusPicker component", () => {
       const { stdin, lastFrame } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={() => {}}
         />
       );
@@ -401,7 +401,7 @@ describe("StatusPicker component", () => {
       const { lastFrame } = render(
         <StatusPicker
           fudaId=""
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={() => {}}
         />
       );
@@ -418,7 +418,7 @@ describe("StatusPicker component", () => {
       const { stdin, rerender } = render(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={handleChange}
         />
       );
@@ -428,7 +428,7 @@ describe("StatusPicker component", () => {
       rerender(
         <StatusPicker
           fudaId="sk-test1"
-          currentStatus={FudaStatus.PENDING}
+          currentStatus={FudaStatus.BLOCKED}
           onStatusChange={handleChange}
         />
       );

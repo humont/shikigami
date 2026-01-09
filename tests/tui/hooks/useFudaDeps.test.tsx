@@ -48,7 +48,7 @@ const mockBlocking: BlockingFuda[] = [
     id: "sk-blocker2",
     displayId: null,
     title: "Blocking task 2",
-    status: FudaStatus.PENDING,
+    status: FudaStatus.BLOCKED,
     type: DependencyType.PARENT_CHILD,
   },
 ];

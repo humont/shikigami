@@ -21,7 +21,7 @@ export interface DependencyTreeProps {
 
 function getStatusColor(status: FudaStatus): string {
   switch (status) {
-    case Status.PENDING:
+    case Status.BLOCKED:
       return "gray";
     case Status.READY:
       return "cyan";
@@ -32,7 +32,6 @@ function getStatusColor(status: FudaStatus): string {
     case Status.DONE:
       return "green";
     case Status.FAILED:
-    case Status.BLOCKED:
       return "red";
     default:
       return "white";

@@ -186,7 +186,7 @@ describe("list command", () => {
 
       const result = await runList({
         projectRoot: testDir,
-        status: FudaStatus.PENDING,
+        status: FudaStatus.BLOCKED,
       });
 
       expect(result.success).toBe(true);

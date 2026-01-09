@@ -42,7 +42,7 @@ const mockDependents: DependencyNode[] = [
     id: "sk-dep1",
     displayId: "sk-d1",
     title: "Dependent task 1",
-    status: FudaStatus.PENDING,
+    status: FudaStatus.BLOCKED,
     type: DependencyType.BLOCKS,
   },
 ];
@@ -406,7 +406,7 @@ describe("SidePanel component", () => {
         id: `sk-blocker-${i}`,
         displayId: `sk-b${i}`,
         title: `Blocker ${i}`,
-        status: FudaStatus.PENDING,
+        status: FudaStatus.BLOCKED,
         type: DependencyType.BLOCKS,
       }));
 

@@ -8,7 +8,7 @@ interface FudaDetailsContentProps {
 
 function getStatusColor(status: FudaStatus): string {
   switch (status) {
-    case FudaStatus.PENDING:
+    case FudaStatus.BLOCKED:
       return "gray";
     case FudaStatus.READY:
       return "cyan";
@@ -19,7 +19,6 @@ function getStatusColor(status: FudaStatus): string {
     case FudaStatus.DONE:
       return "green";
     case FudaStatus.FAILED:
-    case FudaStatus.BLOCKED:
       return "red";
     default:
       return "white";

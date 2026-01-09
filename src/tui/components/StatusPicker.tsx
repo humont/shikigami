@@ -3,23 +3,21 @@ import { Box, Text, useInput } from "ink";
 import { FudaStatus } from "../../types";
 
 const STATUS_OPTIONS: FudaStatus[] = [
-  FudaStatus.PENDING,
+  FudaStatus.BLOCKED,
   FudaStatus.READY,
   FudaStatus.IN_PROGRESS,
   FudaStatus.IN_REVIEW,
   FudaStatus.DONE,
   FudaStatus.FAILED,
-  FudaStatus.BLOCKED,
 ];
 
 const STATUS_COLORS: Record<FudaStatus, string> = {
-  [FudaStatus.PENDING]: "gray",
+  [FudaStatus.BLOCKED]: "gray",
   [FudaStatus.READY]: "cyan",
   [FudaStatus.IN_PROGRESS]: "yellow",
   [FudaStatus.IN_REVIEW]: "magenta",
   [FudaStatus.DONE]: "green",
   [FudaStatus.FAILED]: "red",
-  [FudaStatus.BLOCKED]: "red",
 };
 
 interface StatusPickerProps {

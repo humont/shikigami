@@ -41,7 +41,7 @@ describe("audit log", () => {
         fudaId: fuda.id,
         operation: AuditOperation.UPDATE,
         field: "status",
-        oldValue: "pending",
+        oldValue: "blocked",
         newValue: "in_progress",
         actor: "agent-123",
       });
@@ -49,7 +49,7 @@ describe("audit log", () => {
       const logs = getAuditLog(db, fuda.id);
       expect(logs).toHaveLength(2); // 1 from create + 1 from update
       expect(logs[0].field).toBe("status");
-      expect(logs[0].oldValue).toBe("pending");
+      expect(logs[0].oldValue).toBe("blocked");
       expect(logs[0].newValue).toBe("in_progress");
       expect(logs[0].actor).toBe("agent-123");
     });
@@ -101,7 +101,7 @@ describe("audit log", () => {
       const fuda = createFuda(db, { title: "Test", description: "Desc" });
 
       // createFuda already logged a CREATE, now add more entries
-      logAuditEntry(db, { fudaId: fuda.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "pending", newValue: "ready", actor: "cli" });
+      logAuditEntry(db, { fudaId: fuda.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "blocked", newValue: "ready", actor: "cli" });
       logAuditEntry(db, { fudaId: fuda.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "ready", newValue: "in_progress", actor: "agent" });
 
       const logs = getAuditLog(db, fuda.id);
@@ -132,7 +132,7 @@ describe("audit log", () => {
       const fuda = createFuda(db, { title: "Test", description: "Desc" });
 
       logAuditEntry(db, { fudaId: fuda.id, operation: AuditOperation.CREATE, actor: "cli" });
-      logAuditEntry(db, { fudaId: fuda.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "pending", newValue: "ready", actor: "cli" });
+      logAuditEntry(db, { fudaId: fuda.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "blocked", newValue: "ready", actor: "cli" });
 
       const logs = getAuditLog(db, fuda.id);
       expect(logs[0].id).not.toBe(logs[1].id);
@@ -146,7 +146,7 @@ describe("audit log", () => {
       const fuda2 = createFuda(db, { title: "Fuda 2", description: "Desc" });
 
       // createFuda now logs automatically (2 entries)
-      logAuditEntry(db, { fudaId: fuda1.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "pending", newValue: "ready", actor: "agent" });
+      logAuditEntry(db, { fudaId: fuda1.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "blocked", newValue: "ready", actor: "agent" });
 
       const logs = getAllAuditLog(db);
       expect(logs).toHaveLength(3); // 2 creates + 1 update
@@ -157,7 +157,7 @@ describe("audit log", () => {
       const fuda2 = createFuda(db, { title: "Fuda 2", description: "Desc" });
 
       // createFuda logs automatically (2 entries already)
-      logAuditEntry(db, { fudaId: fuda1.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "pending", newValue: "ready", actor: "agent" });
+      logAuditEntry(db, { fudaId: fuda1.id, operation: AuditOperation.UPDATE, field: "status", oldValue: "blocked", newValue: "ready", actor: "agent" });
 
       const logs = getAllAuditLog(db);
       expect(logs[0].newValue).toBe("ready"); // Most recent

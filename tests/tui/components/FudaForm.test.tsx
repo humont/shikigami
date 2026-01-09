@@ -11,7 +11,7 @@ const mockFuda: Fuda = {
   prdId: null,
   title: "Existing Task",
   description: "Existing description",
-  status: FudaStatus.PENDING,
+  status: FudaStatus.BLOCKED,
   spiritType: SpiritType.SHIKIGAMI,
   assignedSpiritId: null,
   outputCommitHash: null,

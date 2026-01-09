@@ -25,7 +25,7 @@ const mockNodeWithChildren: DependencyGraphNode = {
       id: "sk-child1",
       displayId: "sk-c1",
       title: "Child task 1",
-      status: FudaStatus.PENDING,
+      status: FudaStatus.BLOCKED,
       type: DependencyType.BLOCKS,
       children: [],
     },
@@ -51,7 +51,7 @@ const mockDeepTree: DependencyGraphNode = {
       id: "sk-level1",
       displayId: "sk-l1",
       title: "Level 1",
-      status: FudaStatus.PENDING,
+      status: FudaStatus.BLOCKED,
       type: DependencyType.BLOCKS,
       children: [
         {
@@ -97,7 +97,7 @@ const mockNodeWithCircularChild: DependencyGraphNode = {
       id: "sk-child",
       displayId: "sk-c",
       title: "Child task",
-      status: FudaStatus.PENDING,
+      status: FudaStatus.BLOCKED,
       type: DependencyType.BLOCKS,
       children: [
         {
@@ -153,14 +153,14 @@ describe("DependencyGraph component", () => {
             id: "sk-c1",
             displayId: "sk-c1",
             title: "Child 1",
-            status: FudaStatus.PENDING,
+            status: FudaStatus.BLOCKED,
             type: DependencyType.BLOCKS,
             children: [
               {
                 id: "sk-gc1",
                 displayId: "sk-gc1",
                 title: "Grandchild 1",
-                status: FudaStatus.PENDING,
+                status: FudaStatus.BLOCKED,
                 type: DependencyType.BLOCKS,
                 children: [],
               },
@@ -258,7 +258,7 @@ describe("DependencyGraph component", () => {
     test("renders pending status", () => {
       const pendingNode: DependencyGraphNode = {
         ...mockNode,
-        status: FudaStatus.PENDING,
+        status: FudaStatus.BLOCKED,
       };
 
       const { lastFrame } = render(
@@ -266,7 +266,7 @@ describe("DependencyGraph component", () => {
       );
 
       const output = lastFrame() || "";
-      expect(output).toContain("pending");
+      expect(output).toContain("blocked");
     });
 
     test("renders ready status", () => {
@@ -321,7 +321,7 @@ describe("DependencyGraph component", () => {
     });
 
     test("renders all statuses with different output", () => {
-      const statuses = [FudaStatus.PENDING, FudaStatus.READY, FudaStatus.IN_PROGRESS, FudaStatus.DONE];
+      const statuses = [FudaStatus.BLOCKED, FudaStatus.READY, FudaStatus.IN_PROGRESS, FudaStatus.DONE];
       const outputs: string[] = [];
 
       statuses.forEach((status) => {
@@ -503,7 +503,7 @@ describe("DependencyGraph component", () => {
         id: `sk-${i}`,
         displayId: `sk-${i}`,
         title: `Task ${i}`,
-        status: FudaStatus.PENDING,
+        status: FudaStatus.BLOCKED,
         type: DependencyType.BLOCKS,
         children: [],
       }));

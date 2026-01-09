@@ -38,7 +38,7 @@ describe("fuda CRUD", () => {
       expect(fuda.id).toMatch(/^sk-[a-z0-9]{4,6}$/);
       expect(fuda.title).toBe("Test Fuda");
       expect(fuda.description).toBe("A test fuda description");
-      expect(fuda.status).toBe(FudaStatus.PENDING);
+      expect(fuda.status).toBe(FudaStatus.BLOCKED);
       expect(fuda.spiritType).toBe(SpiritType.SHIKIGAMI);
       expect(fuda.priority).toBe(0);
     });
@@ -140,7 +140,7 @@ describe("fuda CRUD", () => {
       const readyFuda = createFuda(db, { title: "Ready", description: "Desc" });
       updateFudaStatus(db, readyFuda.id, FudaStatus.READY);
 
-      const pending = getFudaByStatus(db, FudaStatus.PENDING);
+      const pending = getFudaByStatus(db, FudaStatus.BLOCKED);
       const ready = getFudaByStatus(db, FudaStatus.READY);
 
       expect(pending).toHaveLength(1);

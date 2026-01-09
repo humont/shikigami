@@ -60,7 +60,7 @@ describe("agent-guide command", () => {
   test("includes status information", async () => {
     const result = await runAgentGuide();
 
-    expect(result.content).toContain("pending");
+    expect(result.content).toContain("blocked");
     expect(result.content).toContain("ready");
     expect(result.content).toContain("in_progress");
     expect(result.content).toContain("done");

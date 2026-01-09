@@ -9,7 +9,7 @@ CREATE TABLE fuda (
   prd_id TEXT,
   title TEXT NOT NULL,
   description TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'pending',
+  status TEXT NOT NULL DEFAULT 'blocked',
   spirit_type TEXT NOT NULL DEFAULT 'shikigami',
   assigned_spirit_id TEXT,
   output_commit_hash TEXT,

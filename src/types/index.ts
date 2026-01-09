@@ -1,9 +1,8 @@
 export const FudaStatus = {
-  PENDING: "pending",
+  BLOCKED: "blocked",
   READY: "ready",
   IN_PROGRESS: "in_progress",
   IN_REVIEW: "in_review",
-  BLOCKED: "blocked",
   FAILED: "failed",
   DONE: "done",
 } as const;

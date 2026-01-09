@@ -74,7 +74,7 @@ export async function runStart(options: StartOptions): Promise<StartResult> {
       }
       return {
         success: false,
-        error: `Cannot start fuda with status '${fuda.status}'. Only 'pending' or 'ready' fuda can be started.`,
+        error: `Cannot start fuda with status '${fuda.status}'. Only 'blocked' or 'ready' fuda can be started.`,
       };
     }
 

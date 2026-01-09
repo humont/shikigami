@@ -36,11 +36,10 @@ const colors = {
 };
 
 const statusColors: Record<string, string> = {
-  pending: colors.gray,
+  blocked: colors.gray,
   ready: colors.cyan,
   in_progress: colors.yellow,
   in_review: colors.magenta,
-  blocked: colors.red,
   failed: colors.red,
   done: colors.green,
 };
@@ -199,7 +198,7 @@ program
 program
   .command("update <id>")
   .description("Update a fuda's status")
-  .requiredOption("-s, --status <status>", "New status (pending, ready, in_progress, in_review, blocked, failed, done)")
+  .requiredOption("-s, --status <status>", "New status (blocked, ready, in_progress, in_review, failed, done)")
   .option("--assigned-spirit-id <spiritId>", "Assign a spirit to this fuda (empty string to clear)")
   .action(async (id, options) => {
     const isJson = program.opts().json;
@@ -614,11 +613,10 @@ function formatFudaSummary(fuda: any): string {
 function formatStatus(status: any): string {
   const lines = [
     "Fuda Status:",
-    `  Pending: ${status.pending}`,
+    `  Blocked: ${status.blocked}`,
     `  Ready: ${status.ready}`,
     `  In Progress: ${status.inProgress}`,
     `  In Review: ${status.inReview}`,
-    `  Blocked: ${status.blocked}`,
     `  Failed: ${status.failed}`,
     `  Done: ${status.done}`,
     `  Total: ${status.total}`,

@@ -28,7 +28,7 @@ shiki ready --json --limit 1
 A **fuda** is a task unit containing:
 - **title**: Brief description of the task
 - **description**: Detailed requirements and context
-- **status**: Current state (\`pending\`, \`ready\`, \`in_progress\`, \`in_review\`, \`blocked\`, \`failed\`, \`done\`)
+- **status**: Current state (\`blocked\`, \`ready\`, \`in_progress\`, \`in_review\`, \`failed\`, \`done\`)
 - **priority**: Numeric priority (higher = more important)
 
 ### Spirit Types
@@ -92,7 +92,7 @@ After completing a task, dependent tasks may become unblocked:
 \`\`\`bash
 shiki ready --json
 \`\`\`
-The system automatically promotes \`pending\` tasks to \`ready\` when their dependencies are satisfied.
+The system automatically promotes \`blocked\` tasks to \`ready\` when their dependencies are satisfied.
 
 ## CLI Reference for Agents
 
@@ -175,8 +175,8 @@ shiki agent-guide --json  # structured format
 # Check system status - are tasks blocked or all done?
 shiki status --json
 
-# Look at what's pending (may need dependencies resolved)
-shiki list --status pending --json
+# Look at what's blocked (may need dependencies resolved)
+shiki list --status blocked --json
 \`\`\`
 
 **Task update failed?**
@@ -233,7 +233,7 @@ export function getStructuredContent(): AgentGuideStructured {
       spiritTypes: ['shikigami', 'tengu', 'kitsune'],
       dependencyTypes: ['blocks', 'parent-child', 'related', 'discovered-from'],
       statuses: [
-        'pending',
+        'blocked',
         'ready',
         'in_progress',
         'in_review',

@@ -200,7 +200,7 @@ describe("update command", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain("pending");
+      expect(result.error).toContain("blocked");
       expect(result.error).toContain("done");
     });
   });

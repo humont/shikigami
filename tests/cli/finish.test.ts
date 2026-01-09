@@ -156,7 +156,7 @@ describe("finish command", () => {
       addFudaDependency(db, dependent.id, blocker.id, DependencyType.BLOCKS);
 
       // Verify dependent is pending initially
-      expect(getFuda(db, dependent.id)!.status).toBe(FudaStatus.PENDING);
+      expect(getFuda(db, dependent.id)!.status).toBe(FudaStatus.BLOCKED);
 
       // Finish the blocker
       const result = await runFinish({
@@ -200,7 +200,7 @@ describe("finish command", () => {
 
       // Dependent should still be pending (blocker2 not done)
       const updatedDependent = getFuda(db, dependent.id);
-      expect(updatedDependent!.status).toBe(FudaStatus.PENDING);
+      expect(updatedDependent!.status).toBe(FudaStatus.BLOCKED);
     });
   });
 

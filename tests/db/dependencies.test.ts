@@ -225,7 +225,7 @@ describe("dependencies", () => {
       expect(updatedA!.status).toBe(FudaStatus.READY);
 
       const updatedB = getFuda(db, fudaB.id);
-      expect(updatedB!.status).toBe(FudaStatus.PENDING);
+      expect(updatedB!.status).toBe(FudaStatus.BLOCKED);
     });
 
     test("transitions fuda with no dependencies", () => {

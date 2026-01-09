@@ -20,7 +20,7 @@ const mockBlockers: DependencyNode[] = [
     id: "sk-blocker2",
     displayId: "sk-b2",
     title: "Blocking task 2",
-    status: FudaStatus.PENDING,
+    status: FudaStatus.BLOCKED,
     type: DependencyType.PARENT_CHILD,
   },
 ];
@@ -30,7 +30,7 @@ const mockDependents: DependencyNode[] = [
     id: "sk-dep1",
     displayId: "sk-d1",
     title: "Dependent task 1",
-    status: FudaStatus.PENDING,
+    status: FudaStatus.BLOCKED,
     type: DependencyType.BLOCKS,
   },
   {
@@ -140,7 +140,7 @@ describe("DependencyTree component", () => {
 
       const output = lastFrame();
       expect(output).toContain("in_progress");
-      expect(output).toContain("pending");
+      expect(output).toContain("blocked");
     });
 
     test("displays dependent statuses", () => {
@@ -149,7 +149,7 @@ describe("DependencyTree component", () => {
       );
 
       const output = lastFrame();
-      expect(output).toContain("pending");
+      expect(output).toContain("blocked");
       expect(output).toContain("ready");
     });
 
@@ -197,7 +197,7 @@ describe("DependencyTree component", () => {
           id: "sk-full-id",
           displayId: null,
           title: "Task without display ID",
-          status: FudaStatus.PENDING,
+          status: FudaStatus.BLOCKED,
           type: DependencyType.BLOCKS,
         },
       ];
@@ -378,7 +378,7 @@ describe("DependencyTree component", () => {
           id: "sk-single",
           displayId: "sk-s",
           title: "Single dependent",
-          status: FudaStatus.PENDING,
+          status: FudaStatus.BLOCKED,
           type: DependencyType.BLOCKS,
         },
       ];
@@ -397,7 +397,7 @@ describe("DependencyTree component", () => {
           id: "sk-long",
           displayId: "sk-l",
           title: "This is a very long title that might need truncation or wrapping in the UI",
-          status: FudaStatus.PENDING,
+          status: FudaStatus.BLOCKED,
           type: DependencyType.BLOCKS,
         },
       ];
@@ -415,7 +415,7 @@ describe("DependencyTree component", () => {
         id: `sk-blocker-${i}`,
         displayId: `sk-b${i}`,
         title: `Blocker ${i}`,
-        status: FudaStatus.PENDING,
+        status: FudaStatus.BLOCKED,
         type: DependencyType.BLOCKS,
       }));
 
@@ -433,28 +433,28 @@ describe("DependencyTree component", () => {
           id: "sk-1",
           displayId: "sk-1",
           title: "Blocks type",
-          status: FudaStatus.PENDING,
+          status: FudaStatus.BLOCKED,
           type: DependencyType.BLOCKS,
         },
         {
           id: "sk-2",
           displayId: "sk-2",
           title: "Parent-child type",
-          status: FudaStatus.PENDING,
+          status: FudaStatus.BLOCKED,
           type: DependencyType.PARENT_CHILD,
         },
         {
           id: "sk-3",
           displayId: "sk-3",
           title: "Related type",
-          status: FudaStatus.PENDING,
+          status: FudaStatus.BLOCKED,
           type: DependencyType.RELATED,
         },
         {
           id: "sk-4",
           displayId: "sk-4",
           title: "Discovered-from type",
-          status: FudaStatus.PENDING,
+          status: FudaStatus.BLOCKED,
           type: DependencyType.DISCOVERED_FROM,
         },
       ];
@@ -476,7 +476,7 @@ describe("DependencyTree component", () => {
           id: "sk-1",
           displayId: "sk-1",
           title: "Pending",
-          status: FudaStatus.PENDING,
+          status: FudaStatus.BLOCKED,
           type: DependencyType.BLOCKS,
         },
         {
@@ -507,7 +507,7 @@ describe("DependencyTree component", () => {
       );
 
       const output = lastFrame();
-      expect(output).toContain("pending");
+      expect(output).toContain("blocked");
       expect(output).toContain("ready");
       expect(output).toContain("in_progress");
       expect(output).toContain("in_review");
