@@ -84,6 +84,7 @@ export async function runInit(options: InitOptions = {}): Promise<InitResult> {
       if (!content.includes(".shikigami")) {
         const gitignoreSection = `# Shikigami - AI agent task orchestration
 ${SHIKIGAMI_DIR}/
+!${SHIKIGAMI_DIR}/prds/
 `;
         const separator = content.endsWith("\n") ? "\n" : "\n\n";
         writeFileSync(gitignorePath, content + separator + gitignoreSection);

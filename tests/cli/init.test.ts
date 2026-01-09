@@ -394,6 +394,31 @@ Key commands:
       expect(content).toContain("# Shikigami");
       expect(content).toContain(".shikigami/");
     });
+
+    test("includes !.shikigami/prds/ exception to track PRD files", async () => {
+      const gitignorePath = join(testDir, ".gitignore");
+      writeFileSync(gitignorePath, "node_modules/\n");
+
+      await runInit({ projectRoot: testDir });
+
+      const content = readFileSync(gitignorePath, "utf-8");
+      expect(content).toContain(".shikigami/");
+      expect(content).toContain("!.shikigami/prds/");
+    });
+
+    test("!.shikigami/prds/ comes after .shikigami/ in gitignore", async () => {
+      const gitignorePath = join(testDir, ".gitignore");
+      writeFileSync(gitignorePath, "node_modules/\n");
+
+      await runInit({ projectRoot: testDir });
+
+      const content = readFileSync(gitignorePath, "utf-8");
+      const shikigamiIndex = content.indexOf(".shikigami/");
+      const prdsExceptionIndex = content.indexOf("!.shikigami/prds/");
+
+      // The exception must come after the ignore rule for gitignore to work correctly
+      expect(prdsExceptionIndex).toBeGreaterThan(shikigamiIndex);
+    });
   });
 
   describe("--force confirmation prompt (integration)", () => {
