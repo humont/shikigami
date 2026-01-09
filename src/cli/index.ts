@@ -196,7 +196,25 @@ program
     });
 
     if (result.success) {
-      output(isJson ? result.fuda : `Started working on fuda ${result.fuda!.id}`, isJson);
+      if (isJson) {
+        output({ fuda: result.fuda, context: result.context }, true);
+      } else {
+        console.log(`Started working on fuda ${result.fuda!.id}`);
+        if (result.context) {
+          if (result.context.handoffs.length > 0) {
+            console.log("\nHandoffs:");
+            result.context.handoffs.forEach((h) => {
+              console.log(`  ${colors.dim}${new Date(h.createdAt).toISOString()}${colors.reset} ${h.content}`);
+            });
+          }
+          if (result.context.learnings.length > 0) {
+            console.log("\nLearnings:");
+            result.context.learnings.forEach((l) => {
+              console.log(`  ${colors.dim}${new Date(l.createdAt).toISOString()}${colors.reset} ${l.content}`);
+            });
+          }
+        }
+      }
     } else {
       outputError(result.error!, isJson);
       process.exit(1);
@@ -207,10 +225,12 @@ program
 program
   .command("finish <id>")
   .description("Mark a fuda as done")
+  .option("-n, --notes <notes>", "Handoff notes for the next agent")
   .action(async (id, options) => {
     const isJson = program.opts().json;
     const result = await runFinish({
       id,
+      notes: options.notes,
     });
 
     if (result.success) {
@@ -218,6 +238,9 @@ program
         output(result, true);
       } else {
         console.log(`Finished fuda ${result.fuda!.id}`);
+        if (result.ledgerEntry) {
+          console.log(`Added handoff note to ledger`);
+        }
         if (result.unblockedFuda && result.unblockedFuda.length > 0) {
           console.log("\nThe following tasks are now ready to work on:");
           for (const fuda of result.unblockedFuda) {
@@ -235,14 +258,23 @@ program
 program
   .command("fail <id>")
   .description("Mark a fuda as failed")
+  .option("-r, --reason <reason>", "Reason for failure")
   .action(async (id, options) => {
     const isJson = program.opts().json;
     const result = await runFail({
       id,
+      reason: options.reason,
     });
 
     if (result.success) {
-      output(isJson ? result.fuda : `Failed fuda ${result.fuda!.id}`, isJson);
+      if (isJson) {
+        output(result, true);
+      } else {
+        console.log(`Failed fuda ${result.fuda!.id}`);
+        if (result.ledgerEntry) {
+          console.log(`Added failure reason to ledger`);
+        }
+      }
     } else {
       outputError(result.error!, isJson);
       process.exit(1);

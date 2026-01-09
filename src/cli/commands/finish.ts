@@ -3,11 +3,13 @@ import { existsSync } from "fs";
 import { join } from "path";
 import { findFudaByPrefix, getFuda, updateFudaStatus } from "../../db/fuda";
 import { getFudaDependents, updateReadyFuda } from "../../db/dependencies";
+import { addEntry, EntryType, type LedgerEntry } from "../../db/ledger";
 import { type Fuda, FudaStatus } from "../../types";
 import { SHIKIGAMI_DIR, DB_FILENAME } from "../../config/paths";
 
 export interface FinishOptions {
   id: string;
+  notes?: string;
   projectRoot?: string;
 }
 
@@ -15,6 +17,7 @@ export interface FinishResult {
   success: boolean;
   fuda?: Fuda;
   unblockedFuda?: Fuda[];
+  ledgerEntry?: LedgerEntry;
   error?: string;
 }
 
@@ -48,6 +51,16 @@ export async function runFinish(options: FinishOptions): Promise<FinishResult> {
       };
     }
 
+    // Create handoff ledger entry if notes provided
+    let ledgerEntry: LedgerEntry | undefined;
+    if (options.notes) {
+      ledgerEntry = addEntry(db, {
+        fudaId: fuda.id,
+        entryType: EntryType.HANDOFF,
+        content: options.notes,
+      });
+    }
+
     // Get dependents that are currently pending (potential candidates for unblocking)
     const dependentIds = getFudaDependents(db, fuda.id);
     const pendingDependentIds = dependentIds.filter((id) => {
@@ -79,6 +92,7 @@ export async function runFinish(options: FinishOptions): Promise<FinishResult> {
       success: true,
       fuda: updated!,
       unblockedFuda,
+      ledgerEntry,
     };
   } catch (error) {
     db.close();
