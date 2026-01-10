@@ -611,7 +611,8 @@ function formatFudaSummary(fuda: any): string {
   const statusPadded = fuda.status.padEnd(11);
   const statusLabel = `${statusColor}${statusPadded}${colors.reset}`;
   const priorityLabel = `${colors.dim}p${fuda.priority}${colors.reset}`;
-  return `  ${colors.dim}${id}${colors.reset}  ${statusLabel}  ${priorityLabel}  ${fuda.title}`;
+  const prdLabel = fuda.prdId ? `  ${colors.dim}[${fuda.prdId}]${colors.reset}` : "";
+  return `  ${colors.dim}${id}${colors.reset}  ${statusLabel}  ${priorityLabel}  ${fuda.title}${prdLabel}`;
 }
 
 function formatStatus(status: any): string {
