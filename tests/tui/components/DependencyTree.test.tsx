@@ -11,14 +11,12 @@ import { DependencyType, FudaStatus } from "../../../src/types";
 const mockBlockers: DependencyNode[] = [
   {
     id: "sk-blocker1",
-    displayId: "sk-b1",
     title: "Blocking task 1",
     status: FudaStatus.IN_PROGRESS,
     type: DependencyType.BLOCKS,
   },
   {
     id: "sk-blocker2",
-    displayId: "sk-b2",
     title: "Blocking task 2",
     status: FudaStatus.BLOCKED,
     type: DependencyType.PARENT_CHILD,
@@ -28,14 +26,12 @@ const mockBlockers: DependencyNode[] = [
 const mockDependents: DependencyNode[] = [
   {
     id: "sk-dep1",
-    displayId: "sk-d1",
     title: "Dependent task 1",
     status: FudaStatus.BLOCKED,
     type: DependencyType.BLOCKS,
   },
   {
     id: "sk-dep2",
-    displayId: "sk-d2",
     title: "Dependent task 2",
     status: FudaStatus.READY,
     type: DependencyType.RELATED,
@@ -113,24 +109,24 @@ describe("DependencyTree component", () => {
   });
 
   describe("shows blockers and dependents", () => {
-    test("displays blocker display IDs", () => {
+    test("displays blocker IDs", () => {
       const { lastFrame } = render(
         <DependencyTree blockers={mockBlockers} dependents={[]} />
       );
 
       const output = lastFrame();
-      expect(output).toContain("sk-b1");
-      expect(output).toContain("sk-b2");
+      expect(output).toContain("sk-blocker1");
+      expect(output).toContain("sk-blocker2");
     });
 
-    test("displays dependent display IDs", () => {
+    test("displays dependent IDs", () => {
       const { lastFrame } = render(
         <DependencyTree blockers={[]} dependents={mockDependents} />
       );
 
       const output = lastFrame();
-      expect(output).toContain("sk-d1");
-      expect(output).toContain("sk-d2");
+      expect(output).toContain("sk-dep1");
+      expect(output).toContain("sk-dep2");
     });
 
     test("displays blocker statuses", () => {
@@ -191,25 +187,23 @@ describe("DependencyTree component", () => {
       expect(output).toContain("2");
     });
 
-    test("handles node without displayId", () => {
-      const nodeWithoutDisplayId: DependencyNode[] = [
+    test("displays node ID", () => {
+      const nodeWithId: DependencyNode[] = [
         {
           id: "sk-full-id",
-          displayId: null,
-          title: "Task without display ID",
+          title: "Task with ID",
           status: FudaStatus.BLOCKED,
           type: DependencyType.BLOCKS,
         },
       ];
 
       const { lastFrame } = render(
-        <DependencyTree blockers={nodeWithoutDisplayId} dependents={[]} />
+        <DependencyTree blockers={nodeWithId} dependents={[]} />
       );
 
       const output = lastFrame();
-      expect(output).toContain("Task without display ID");
-      // Should fallback to showing truncated full id or some identifier
-      expect(output).toBeTruthy();
+      expect(output).toContain("Task with ID");
+      expect(output).toContain("sk-full-id");
     });
   });
 
@@ -356,7 +350,6 @@ describe("DependencyTree component", () => {
       const singleBlocker: DependencyNode[] = [
         {
           id: "sk-single",
-          displayId: "sk-s",
           title: "Single blocker",
           status: FudaStatus.IN_PROGRESS,
           type: DependencyType.BLOCKS,
@@ -376,7 +369,6 @@ describe("DependencyTree component", () => {
       const singleDependent: DependencyNode[] = [
         {
           id: "sk-single",
-          displayId: "sk-s",
           title: "Single dependent",
           status: FudaStatus.BLOCKED,
           type: DependencyType.BLOCKS,
@@ -395,7 +387,6 @@ describe("DependencyTree component", () => {
       const longTitleNode: DependencyNode[] = [
         {
           id: "sk-long",
-          displayId: "sk-l",
           title: "This is a very long title that might need truncation or wrapping in the UI",
           status: FudaStatus.BLOCKED,
           type: DependencyType.BLOCKS,
@@ -413,7 +404,6 @@ describe("DependencyTree component", () => {
     test("handles many blockers", () => {
       const manyBlockers: DependencyNode[] = Array.from({ length: 10 }, (_, i) => ({
         id: `sk-blocker-${i}`,
-        displayId: `sk-b${i}`,
         title: `Blocker ${i}`,
         status: FudaStatus.BLOCKED,
         type: DependencyType.BLOCKS,
@@ -431,28 +421,24 @@ describe("DependencyTree component", () => {
       const allTypes: DependencyNode[] = [
         {
           id: "sk-1",
-          displayId: "sk-1",
           title: "Blocks type",
           status: FudaStatus.BLOCKED,
           type: DependencyType.BLOCKS,
         },
         {
           id: "sk-2",
-          displayId: "sk-2",
           title: "Parent-child type",
           status: FudaStatus.BLOCKED,
           type: DependencyType.PARENT_CHILD,
         },
         {
           id: "sk-3",
-          displayId: "sk-3",
           title: "Related type",
           status: FudaStatus.BLOCKED,
           type: DependencyType.RELATED,
         },
         {
           id: "sk-4",
-          displayId: "sk-4",
           title: "Discovered-from type",
           status: FudaStatus.BLOCKED,
           type: DependencyType.DISCOVERED_FROM,
@@ -474,28 +460,24 @@ describe("DependencyTree component", () => {
       const allStatuses: DependencyNode[] = [
         {
           id: "sk-1",
-          displayId: "sk-1",
           title: "Pending",
           status: FudaStatus.BLOCKED,
           type: DependencyType.BLOCKS,
         },
         {
           id: "sk-2",
-          displayId: "sk-2",
           title: "Ready",
           status: FudaStatus.READY,
           type: DependencyType.BLOCKS,
         },
         {
           id: "sk-3",
-          displayId: "sk-3",
           title: "In Progress",
           status: FudaStatus.IN_PROGRESS,
           type: DependencyType.BLOCKS,
         },
         {
           id: "sk-4",
-          displayId: "sk-4",
           title: "In Review",
           status: FudaStatus.IN_REVIEW,
           type: DependencyType.BLOCKS,

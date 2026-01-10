@@ -7,7 +7,6 @@ import { type Fuda, FudaStatus, SpiritType } from "../../../src/types";
 // Mock fuda data for edit mode testing
 const mockFuda: Fuda = {
   id: "sk-test1",
-  displayId: null,
   prdId: null,
   title: "Existing Task",
   description: "Existing description",

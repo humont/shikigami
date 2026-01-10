@@ -7,7 +7,6 @@ import { type Fuda, FudaStatus, SpiritType } from "../../../src/types";
 // Mock fuda data for testing
 const mockFuda: Fuda = {
   id: "sk-test1",
-  displayId: "TASK-123",
   prdId: "PRD-456",
   title: "Test fuda title",
   description: "This is a detailed description of the fuda",
@@ -35,15 +34,6 @@ describe("FudaDetails component", () => {
 
       const output = lastFrame();
       expect(output).toContain("sk-test1");
-    });
-
-    test("renders displayId when available", () => {
-      const { lastFrame } = render(
-        <FudaDetails fuda={mockFuda} onClose={() => {}} />
-      );
-
-      const output = lastFrame();
-      expect(output).toContain("TASK-123");
     });
 
     test("renders title", () => {
@@ -148,7 +138,6 @@ describe("FudaDetails component", () => {
     test("handles fuda with null optional fields", () => {
       const minimalFuda: Fuda = {
         ...mockFuda,
-        displayId: null,
         prdId: null,
         assignedSpiritId: null,
         outputCommitHash: null,

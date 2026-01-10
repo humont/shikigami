@@ -587,7 +587,6 @@ function formatLedgerEntry(entry: any): string {
 function formatFudaDetails(fuda: any): string {
   const lines = [
     `ID: ${fuda.id}`,
-    fuda.displayId ? `Display ID: ${fuda.displayId}` : null,
     `Title: ${fuda.title}`,
     `Description: ${fuda.description}`,
     `Status: ${fuda.status}`,
@@ -605,7 +604,7 @@ function formatFudaDetails(fuda: any): string {
 }
 
 function formatFudaSummary(fuda: any): string {
-  const id = fuda.displayId ? `${fuda.id} (${fuda.displayId})` : fuda.id;
+  const id = fuda.id;
   const statusColor = statusColors[fuda.status] || colors.reset;
   // Pad status to 11 chars (length of "in_progress")
   const statusPadded = fuda.status.padEnd(11);

@@ -8,7 +8,6 @@ import { type DependencyNode } from "../../../src/tui/components/DependencyTree"
 // Mock fuda data for testing
 const mockFuda: Fuda = {
   id: "sk-test1",
-  displayId: "TASK-123",
   prdId: "PRD-456",
   title: "Test fuda title",
   description: "This is a detailed description of the fuda",
@@ -30,7 +29,6 @@ const mockFuda: Fuda = {
 const mockBlockers: DependencyNode[] = [
   {
     id: "sk-blocker1",
-    displayId: "sk-b1",
     title: "Blocking task 1",
     status: FudaStatus.IN_PROGRESS,
     type: DependencyType.BLOCKS,
@@ -40,7 +38,6 @@ const mockBlockers: DependencyNode[] = [
 const mockDependents: DependencyNode[] = [
   {
     id: "sk-dep1",
-    displayId: "sk-d1",
     title: "Dependent task 1",
     status: FudaStatus.BLOCKED,
     type: DependencyType.BLOCKS,
@@ -124,15 +121,6 @@ describe("SidePanel component", () => {
       expect(output).toContain("This is a detailed description of the fuda");
     });
 
-    test("displays displayId when available", () => {
-      const { lastFrame } = render(
-        <SidePanel fuda={mockFuda} blockers={[]} dependents={[]} />
-      );
-
-      const output = lastFrame();
-      expect(output).toContain("TASK-123");
-    });
-
     test("displays prdId when available", () => {
       const { lastFrame } = render(
         <SidePanel fuda={mockFuda} blockers={[]} dependents={[]} />
@@ -154,7 +142,6 @@ describe("SidePanel component", () => {
     test("handles fuda with null optional fields", () => {
       const minimalFuda: Fuda = {
         ...mockFuda,
-        displayId: null,
         prdId: null,
         assignedSpiritId: null,
         outputCommitHash: null,
@@ -235,14 +222,14 @@ describe("SidePanel component", () => {
       expect(output).toContain("Dependents");
     });
 
-    test("shows dependency display IDs", () => {
+    test("shows dependency IDs", () => {
       const { lastFrame } = render(
         <SidePanel fuda={mockFuda} blockers={mockBlockers} dependents={mockDependents} />
       );
 
       const output = lastFrame();
-      expect(output).toContain("sk-b1");
-      expect(output).toContain("sk-d1");
+      expect(output).toContain("sk-blocker1");
+      expect(output).toContain("sk-dep1");
     });
   });
 
@@ -404,7 +391,6 @@ describe("SidePanel component", () => {
     test("handles many blockers", () => {
       const manyBlockers: DependencyNode[] = Array.from({ length: 10 }, (_, i) => ({
         id: `sk-blocker-${i}`,
-        displayId: `sk-b${i}`,
         title: `Blocker ${i}`,
         status: FudaStatus.BLOCKED,
         type: DependencyType.BLOCKS,

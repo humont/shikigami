@@ -8,7 +8,6 @@ import { type Fuda, FudaStatus, SpiritType } from "../../../src/types";
 const mockFudas: Fuda[] = [
   {
     id: "sk-test1",
-    displayId: null,
     prdId: null,
     title: "First task",
     description: "Description 1",
@@ -28,7 +27,6 @@ const mockFudas: Fuda[] = [
   },
   {
     id: "sk-test2",
-    displayId: null,
     prdId: null,
     title: "Second task",
     description: "Description 2",
@@ -48,7 +46,6 @@ const mockFudas: Fuda[] = [
   },
   {
     id: "sk-test3",
-    displayId: null,
     prdId: null,
     title: "Third task",
     description: "Description 3",
@@ -501,20 +498,6 @@ describe("FudaList component", () => {
 
       // Should render without crashing
       expect(lastFrame()).toBeDefined();
-    });
-
-    test("handles fuda with displayId", () => {
-      const fudaWithDisplayId: Fuda[] = [
-        { ...mockFudas[0], displayId: "TASK-123" },
-      ];
-
-      const { lastFrame } = render(
-        <FudaList fudas={fudaWithDisplayId} selectedIndex={0} />
-      );
-
-      const output = lastFrame();
-      // Should show displayId when available
-      expect(output).toContain("TASK-123");
     });
 
     test("handles many fudas", () => {

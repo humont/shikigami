@@ -5,7 +5,6 @@ import { getStatusColor } from "../colors";
 
 export interface DependencyGraphNode {
   id: string;
-  displayId: string | null;
   title: string;
   status: FudaStatus;
   type: DependencyType;
@@ -39,7 +38,7 @@ interface TreeNodeProps {
 function TreeNode({ node, prefix, isLast, depth, maxDepth }: TreeNodeProps) {
   const connector = isLast ? "└── " : "├── ";
   const childPrefix = prefix + (isLast ? "    " : "│   ");
-  const displayId = node.displayId || node.id.slice(0, 8);
+  const nodeId = node.id;
 
   if (node.isCircular) {
     return (
@@ -48,7 +47,7 @@ function TreeNode({ node, prefix, isLast, depth, maxDepth }: TreeNodeProps) {
           {prefix}
           {connector}
         </Text>
-        <Text dimColor>{displayId}</Text>
+        <Text dimColor>{nodeId}</Text>
         <Text> </Text>
         <Text color={getStatusColor(node.status)}>{node.status}</Text>
         <Text> </Text>
@@ -72,7 +71,7 @@ function TreeNode({ node, prefix, isLast, depth, maxDepth }: TreeNodeProps) {
           {prefix}
           {connector}
         </Text>
-        <Text dimColor>{displayId}</Text>
+        <Text dimColor>{nodeId}</Text>
         <Text> </Text>
         <Text color={getStatusColor(node.status)}>{node.status}</Text>
         <Text> </Text>

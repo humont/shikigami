@@ -10,7 +10,6 @@ import { type Fuda, FudaStatus, SpiritType } from "../../../src/types";
 const mockFudas: Fuda[] = [
   {
     id: "sk-test1",
-    displayId: null,
     prdId: null,
     title: "Test task 1",
     description: "Description 1",
@@ -30,7 +29,6 @@ const mockFudas: Fuda[] = [
   },
   {
     id: "sk-test2",
-    displayId: null,
     prdId: null,
     title: "Test task 2",
     description: "Description 2",
@@ -50,7 +48,6 @@ const mockFudas: Fuda[] = [
   },
   {
     id: "sk-test3",
-    displayId: null,
     prdId: null,
     title: "Test task 3",
     description: "Description 3",

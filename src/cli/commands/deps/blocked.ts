@@ -13,7 +13,6 @@ export interface DepsBlockedOptions {
 
 export interface BlockingFuda {
   id: string;
-  displayId: string | null;
   title: string;
   status: string;
   type: string;

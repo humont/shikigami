@@ -18,20 +18,17 @@ export function outputError(message: string, isJson: boolean): void {
 
 export function formatFuda(fuda: {
   id: string;
-  displayId?: string | null;
   title: string;
   status: string;
   priority: number;
   spiritType: string;
 }): string {
-  const idDisplay = fuda.displayId ? `${fuda.id} (${fuda.displayId})` : fuda.id;
-  return `${idDisplay} [${fuda.status}] ${fuda.title} (p${fuda.priority}, ${fuda.spiritType})`;
+  return `${fuda.id} [${fuda.status}] ${fuda.title} (p${fuda.priority}, ${fuda.spiritType})`;
 }
 
 export function formatFudaList(
   fudas: Array<{
     id: string;
-    displayId?: string | null;
     title: string;
     status: string;
     priority: number;

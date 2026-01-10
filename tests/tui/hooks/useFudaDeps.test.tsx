@@ -39,14 +39,12 @@ const mockTree: Record<string, FudaDependency[]> = {
 const mockBlocking: BlockingFuda[] = [
   {
     id: "sk-blocker1",
-    displayId: "sk-b1",
     title: "Blocking task 1",
     status: FudaStatus.IN_PROGRESS,
     type: DependencyType.BLOCKS,
   },
   {
     id: "sk-blocker2",
-    displayId: null,
     title: "Blocking task 2",
     status: FudaStatus.BLOCKED,
     type: DependencyType.PARENT_CHILD,
@@ -564,7 +562,6 @@ describe("useFudaDeps hook", () => {
       const newBlocking: BlockingFuda[] = [
         {
           id: "sk-new",
-          displayId: null,
           title: "New blocker",
           status: FudaStatus.READY,
           type: DependencyType.BLOCKS,

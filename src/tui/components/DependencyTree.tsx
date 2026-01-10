@@ -4,7 +4,6 @@ import { type DependencyType, type FudaStatus, FudaStatus as Status } from "../.
 
 export interface DependencyNode {
   id: string;
-  displayId: string | null;
   title: string;
   status: FudaStatus;
   type: DependencyType;
@@ -83,12 +82,12 @@ export function DependencyTree({
             const isSelected = currentIndex === selectedIndex;
             const nodeIndex = currentIndex;
             currentIndex++;
-            const displayId = node.displayId || node.id.slice(0, 8);
+            const nodeId = node.id;
 
             return (
               <Box key={node.id} gap={1} marginLeft={1}>
                 <Text>{isSelected ? ">" : "├"}</Text>
-                <Text dimColor>{displayId}</Text>
+                <Text dimColor>{nodeId}</Text>
                 <Text color={getStatusColor(node.status)}>{node.status}</Text>
                 <Text dimColor>[{node.type}]</Text>
                 <Text bold={isSelected}>{node.title}</Text>
@@ -105,12 +104,12 @@ export function DependencyTree({
           {dependents.map((node) => {
             const isSelected = currentIndex === selectedIndex;
             currentIndex++;
-            const displayId = node.displayId || node.id.slice(0, 8);
+            const nodeId = node.id;
 
             return (
               <Box key={node.id} gap={1} marginLeft={1}>
                 <Text>{isSelected ? ">" : "├"}</Text>
-                <Text dimColor>{displayId}</Text>
+                <Text dimColor>{nodeId}</Text>
                 <Text color={getStatusColor(node.status)}>{node.status}</Text>
                 <Text dimColor>[{node.type}]</Text>
                 <Text bold={isSelected}>{node.title}</Text>

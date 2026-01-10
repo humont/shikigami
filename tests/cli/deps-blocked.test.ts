@@ -244,7 +244,6 @@ describe("deps blocked command", () => {
 
       const blockingItem = result.blocking![0];
       expect(blockingItem).toHaveProperty("id");
-      expect(blockingItem).toHaveProperty("displayId");
       expect(blockingItem).toHaveProperty("title");
       expect(blockingItem).toHaveProperty("status");
       expect(blockingItem).toHaveProperty("type");

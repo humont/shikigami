@@ -14,7 +14,6 @@ let globalRunLogAllSpy: ReturnType<typeof spyOn>;
 const mockFudas: Fuda[] = [
   {
     id: "sk-test1",
-    displayId: null,
     prdId: null,
     title: "First task",
     description: "Description 1",
@@ -34,7 +33,6 @@ const mockFudas: Fuda[] = [
   },
   {
     id: "sk-test2",
-    displayId: null,
     prdId: null,
     title: "Second task",
     description: "Description 2",
@@ -54,7 +52,6 @@ const mockFudas: Fuda[] = [
   },
   {
     id: "sk-test3",
-    displayId: null,
     prdId: null,
     title: "Third task",
     description: "Description 3",

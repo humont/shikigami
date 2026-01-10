@@ -7,7 +7,6 @@ import { DependencyType, FudaStatus } from "../../../src/types";
 // Mock dependency graph data
 const mockNode: DependencyGraphNode = {
   id: "sk-root",
-  displayId: "sk-r",
   title: "Root task",
   status: FudaStatus.IN_PROGRESS,
   type: DependencyType.BLOCKS,
@@ -16,14 +15,12 @@ const mockNode: DependencyGraphNode = {
 
 const mockNodeWithChildren: DependencyGraphNode = {
   id: "sk-root",
-  displayId: "sk-r",
   title: "Root task",
   status: FudaStatus.IN_PROGRESS,
   type: DependencyType.BLOCKS,
   children: [
     {
       id: "sk-child1",
-      displayId: "sk-c1",
       title: "Child task 1",
       status: FudaStatus.BLOCKED,
       type: DependencyType.BLOCKS,
@@ -31,7 +28,6 @@ const mockNodeWithChildren: DependencyGraphNode = {
     },
     {
       id: "sk-child2",
-      displayId: "sk-c2",
       title: "Child task 2",
       status: FudaStatus.READY,
       type: DependencyType.PARENT_CHILD,
@@ -42,28 +38,24 @@ const mockNodeWithChildren: DependencyGraphNode = {
 
 const mockDeepTree: DependencyGraphNode = {
   id: "sk-level0",
-  displayId: "sk-l0",
   title: "Level 0",
   status: FudaStatus.IN_PROGRESS,
   type: DependencyType.BLOCKS,
   children: [
     {
       id: "sk-level1",
-      displayId: "sk-l1",
       title: "Level 1",
       status: FudaStatus.BLOCKED,
       type: DependencyType.BLOCKS,
       children: [
         {
           id: "sk-level2",
-          displayId: "sk-l2",
           title: "Level 2",
           status: FudaStatus.READY,
           type: DependencyType.BLOCKS,
           children: [
             {
               id: "sk-level3",
-              displayId: "sk-l3",
               title: "Level 3",
               status: FudaStatus.DONE,
               type: DependencyType.BLOCKS,
@@ -78,7 +70,6 @@ const mockDeepTree: DependencyGraphNode = {
 
 const mockCircularNode: DependencyGraphNode = {
   id: "sk-circular",
-  displayId: "sk-circ",
   title: "Circular task",
   status: FudaStatus.IN_PROGRESS,
   type: DependencyType.BLOCKS,
@@ -88,22 +79,19 @@ const mockCircularNode: DependencyGraphNode = {
 
 const mockNodeWithCircularChild: DependencyGraphNode = {
   id: "sk-root",
-  displayId: "sk-r",
   title: "Root task",
   status: FudaStatus.IN_PROGRESS,
   type: DependencyType.BLOCKS,
   children: [
     {
       id: "sk-child",
-      displayId: "sk-c",
       title: "Child task",
       status: FudaStatus.BLOCKED,
       type: DependencyType.BLOCKS,
       children: [
         {
           id: "sk-root",
-          displayId: "sk-r",
-          title: "Root task (circular)",
+                  title: "Root task (circular)",
           status: FudaStatus.IN_PROGRESS,
           type: DependencyType.BLOCKS,
           children: [],
@@ -151,14 +139,12 @@ describe("DependencyGraph component", () => {
         children: [
           {
             id: "sk-c1",
-            displayId: "sk-c1",
-            title: "Child 1",
+                  title: "Child 1",
             status: FudaStatus.BLOCKED,
             type: DependencyType.BLOCKS,
             children: [
               {
                 id: "sk-gc1",
-                displayId: "sk-gc1",
                 title: "Grandchild 1",
                 status: FudaStatus.BLOCKED,
                 type: DependencyType.BLOCKS,
@@ -168,8 +154,7 @@ describe("DependencyGraph component", () => {
           },
           {
             id: "sk-c2",
-            displayId: "sk-c2",
-            title: "Child 2",
+                  title: "Child 2",
             status: FudaStatus.READY,
             type: DependencyType.BLOCKS,
             children: [],
@@ -470,20 +455,6 @@ describe("DependencyGraph component", () => {
   });
 
   describe("edge cases", () => {
-    test("handles node without displayId", () => {
-      const nodeWithoutDisplayId: DependencyGraphNode = {
-        ...mockNode,
-        displayId: null,
-      };
-
-      const { lastFrame } = render(
-        <DependencyGraph blockers={[nodeWithoutDisplayId]} dependents={[]} />
-      );
-
-      const output = lastFrame() || "";
-      expect(output).toContain("Root task");
-    });
-
     test("handles very long titles", () => {
       const longTitleNode: DependencyGraphNode = {
         ...mockNode,
@@ -501,7 +472,6 @@ describe("DependencyGraph component", () => {
     test("handles many top-level nodes", () => {
       const manyNodes: DependencyGraphNode[] = Array.from({ length: 10 }, (_, i) => ({
         id: `sk-${i}`,
-        displayId: `sk-${i}`,
         title: `Task ${i}`,
         status: FudaStatus.BLOCKED,
         type: DependencyType.BLOCKS,
