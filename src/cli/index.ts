@@ -600,6 +600,26 @@ function formatFudaDetails(fuda: any): string {
     `Updated: ${fuda.updatedAt}`,
   ].filter(Boolean);
 
+  // Add predecessor handoffs section
+  if (fuda.predecessorHandoffs && fuda.predecessorHandoffs.length > 0) {
+    lines.push("");
+    lines.push("Predecessor Handoffs:");
+    for (const handoff of fuda.predecessorHandoffs) {
+      lines.push(`  From: ${handoff.sourceFudaTitle} (${handoff.sourceFudaId})`);
+      lines.push(`    ${handoff.content}`);
+    }
+  }
+
+  // Add ledger entries section
+  if (fuda.entries && fuda.entries.length > 0) {
+    lines.push("");
+    lines.push("Ledger Entries:");
+    for (const entry of fuda.entries) {
+      const typeLabel = entry.entryType === "handoff" ? "Handoff" : "Learning";
+      lines.push(`  [${typeLabel}] ${entry.content}`);
+    }
+  }
+
   return lines.join("\n");
 }
 
