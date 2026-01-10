@@ -2,6 +2,7 @@ import { Database } from 'bun:sqlite';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { DB_FILENAME, SHIKIGAMI_DIR } from '../../config/paths';
+import { getBlockingDependencies } from '../../db/dependencies';
 import { claimFuda, findFudaByPrefix, getFuda } from '../../db/fuda';
 import { EntryType, getEntriesByType } from '../../db/ledger';
 import type { Fuda } from '../../types';
@@ -17,6 +18,7 @@ export interface ContextEntry {
   content: string;
   spiritId: string | null;
   createdAt: Date;
+  sourceFudaId?: string;
 }
 
 export interface StartContext {
@@ -81,8 +83,28 @@ export async function runStart(options: StartOptions): Promise<StartResult> {
     // Get updated fuda
     const updated = getFuda(db, fuda.id);
 
-    // Fetch ledger context
-    const handoffEntries = getEntriesByType(db, fuda.id, EntryType.HANDOFF);
+    // Fetch handoffs from blocking dependencies (predecessors)
+    const blockingDeps = getBlockingDependencies(db, fuda.id);
+    const handoffs: ContextEntry[] = [];
+
+    for (const dep of blockingDeps) {
+      const predecessorHandoffs = getEntriesByType(
+        db,
+        dep.dependsOnId,
+        EntryType.HANDOFF
+      );
+      for (const entry of predecessorHandoffs) {
+        handoffs.push({
+          id: entry.id,
+          content: entry.content,
+          spiritId: entry.spiritId,
+          createdAt: entry.createdAt,
+          sourceFudaId: dep.dependsOnId,
+        });
+      }
+    }
+
+    // Fetch learnings from current fuda (unchanged)
     const learningEntries = getEntriesByType(db, fuda.id, EntryType.LEARNING);
 
     const toContextEntry = (entry: {
@@ -98,7 +120,7 @@ export async function runStart(options: StartOptions): Promise<StartResult> {
     });
 
     const context: StartContext = {
-      handoffs: handoffEntries.map(toContextEntry),
+      handoffs,
       learnings: learningEntries.map(toContextEntry),
     };
 

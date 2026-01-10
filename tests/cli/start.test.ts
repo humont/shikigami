@@ -254,24 +254,33 @@ describe('start command', () => {
       expect(Array.isArray(result.context!.learnings)).toBe(true);
     });
 
-    test('handoffs array contains all handoff entries for the fuda', async () => {
-      const fuda = createFuda(db, {
-        title: 'Test task',
-        description: 'Test description',
+    test('handoffs array contains handoff entries from predecessor fudas', async () => {
+      // Create predecessor and mark as done
+      const predecessor = createFuda(db, {
+        title: 'Predecessor task',
+        description: 'Blocks the main task',
       });
+      updateFudaStatus(db, predecessor.id, FudaStatus.DONE);
 
       addEntry(db, {
-        fudaId: fuda.id,
+        fudaId: predecessor.id,
         entryType: EntryType.HANDOFF,
         content: 'First handoff note',
         spiritId: 'agent-1',
       });
       addEntry(db, {
-        fudaId: fuda.id,
+        fudaId: predecessor.id,
         entryType: EntryType.HANDOFF,
         content: 'Second handoff note',
         spiritId: 'agent-2',
       });
+
+      // Create current fuda that depends on predecessor
+      const fuda = createFuda(db, {
+        title: 'Test task',
+        description: 'Test description',
+      });
+      addFudaDependency(db, fuda.id, predecessor.id, DependencyType.BLOCKS);
 
       const result = await runStart({
         projectRoot: testDir,
@@ -333,18 +342,27 @@ describe('start command', () => {
       expect(result.context!.learnings).toEqual([]);
     });
 
-    test('context entries include id, content, spiritId, and createdAt', async () => {
-      const fuda = createFuda(db, {
-        title: 'Test task',
-        description: 'Test description',
+    test('context entries include id, content, spiritId, createdAt, and sourceFudaId', async () => {
+      // Create predecessor and mark as done
+      const predecessor = createFuda(db, {
+        title: 'Predecessor task',
+        description: 'Blocks the main task',
       });
+      updateFudaStatus(db, predecessor.id, FudaStatus.DONE);
 
       addEntry(db, {
-        fudaId: fuda.id,
+        fudaId: predecessor.id,
         entryType: EntryType.HANDOFF,
         content: 'Handoff with all fields',
         spiritId: 'agent-123',
       });
+
+      // Create current fuda that depends on predecessor
+      const fuda = createFuda(db, {
+        title: 'Test task',
+        description: 'Test description',
+      });
+      addFudaDependency(db, fuda.id, predecessor.id, DependencyType.BLOCKS);
 
       const result = await runStart({
         projectRoot: testDir,
@@ -358,6 +376,7 @@ describe('start command', () => {
       expect(handoff.content).toBe('Handoff with all fields');
       expect(handoff.spiritId).toBe('agent-123');
       expect(handoff.createdAt).toBeDefined();
+      expect(handoff.sourceFudaId).toBe(predecessor.id);
     });
 
     test('context entries without spiritId have null spiritId', async () => {
@@ -382,35 +401,46 @@ describe('start command', () => {
       expect(learning.spiritId).toBeNull();
     });
 
-    test('does not include entries from other fuda', async () => {
-      const fuda1 = createFuda(db, {
-        title: 'Fuda 1',
-        description: 'Test description',
+    test('does not include handoffs from non-blocking fuda', async () => {
+      // Create predecessor (blocking) and mark as done
+      const predecessor = createFuda(db, {
+        title: 'Predecessor',
+        description: 'Blocks the main task',
       });
-      const fuda2 = createFuda(db, {
-        title: 'Fuda 2',
-        description: 'Test description',
+      updateFudaStatus(db, predecessor.id, FudaStatus.DONE);
+      addEntry(db, {
+        fudaId: predecessor.id,
+        entryType: EntryType.HANDOFF,
+        content: 'Predecessor handoff',
       });
 
-      addEntry(db, {
-        fudaId: fuda1.id,
-        entryType: EntryType.HANDOFF,
-        content: 'Fuda 1 handoff',
+      // Create unrelated fuda (not a dependency)
+      const unrelatedFuda = createFuda(db, {
+        title: 'Unrelated',
+        description: 'Not connected',
       });
+      updateFudaStatus(db, unrelatedFuda.id, FudaStatus.DONE);
       addEntry(db, {
-        fudaId: fuda2.id,
+        fudaId: unrelatedFuda.id,
         entryType: EntryType.HANDOFF,
-        content: 'Fuda 2 handoff',
+        content: 'Unrelated handoff',
       });
+
+      // Create current fuda that only depends on predecessor
+      const currentFuda = createFuda(db, {
+        title: 'Current',
+        description: 'Test description',
+      });
+      addFudaDependency(db, currentFuda.id, predecessor.id, DependencyType.BLOCKS);
 
       const result = await runStart({
         projectRoot: testDir,
-        id: fuda1.id,
+        id: currentFuda.id,
       });
 
       expect(result.success).toBe(true);
       expect(result.context!.handoffs).toHaveLength(1);
-      expect(result.context!.handoffs[0].content).toBe('Fuda 1 handoff');
+      expect(result.context!.handoffs[0].content).toBe('Predecessor handoff');
     });
   });
 
