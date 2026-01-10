@@ -55,22 +55,6 @@ describe("fuda CRUD", () => {
       expect(fuda.priority).toBe(10);
     });
 
-    test("generates displayId when prdId provided", () => {
-      const fuda = createFuda(db, {
-        title: "Test",
-        description: "Desc",
-        prdId: "prd-abc1",
-      });
-
-      expect(fuda.displayId).toBe("prd-abc1.1");
-    });
-
-    test("increments displayId for siblings", () => {
-      createFuda(db, { title: "First", description: "Desc", prdId: "prd-abc1" });
-      const second = createFuda(db, { title: "Second", description: "Desc", prdId: "prd-abc1" });
-
-      expect(second.displayId).toBe("prd-abc1.2");
-    });
   });
 
   describe("getFuda", () => {
@@ -116,20 +100,12 @@ describe("fuda CRUD", () => {
       expect(result!.id).toBe(fuda.id);
     });
 
-    test("finds by displayId", () => {
-      const fuda = createFuda(db, { title: "Test", description: "Desc", prdId: "prd-xyz1" });
-
-      const result = findFudaByPrefix(db, "prd-xyz1.1");
-      expect(result).not.toBeNull();
-      expect(result!.id).toBe(fuda.id);
-    });
-
     test("returns null for ambiguous prefix", () => {
-      createFuda(db, { title: "Test 1", description: "Desc", prdId: "prd-abc1" });
-      createFuda(db, { title: "Test 2", description: "Desc", prdId: "prd-abc1" });
+      createFuda(db, { title: "Test 1", description: "Desc" });
+      createFuda(db, { title: "Test 2", description: "Desc" });
 
-      // Both start with prd-abc1, should be ambiguous
-      const result = findFudaByPrefix(db, "prd-abc1");
+      // Both start with sk-, should be ambiguous
+      const result = findFudaByPrefix(db, "sk-");
       expect(result).toBeNull();
     });
   });
