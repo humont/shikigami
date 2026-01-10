@@ -5,9 +5,10 @@ import { tmpdir } from "os";
 import { Database } from "bun:sqlite";
 import { runInit } from "../../src/cli/commands/init";
 import { runShow } from "../../src/cli/commands/show";
-import { createFuda } from "../../src/db/fuda";
+import { createFuda, updateFudaStatus } from "../../src/db/fuda";
 import { addFudaDependency } from "../../src/db/dependencies";
-import { DependencyType } from "../../src/types";
+import { addEntry, EntryType } from "../../src/db/ledger";
+import { DependencyType, FudaStatus } from "../../src/types";
 
 describe("show command", () => {
   let testDir: string;
@@ -390,6 +391,426 @@ describe("show command", () => {
       const parsed = JSON.parse(json);
 
       expect(parsed.fuda.prdPath).toBe(".shikigami/prds/my-prd-123.md");
+    });
+  });
+
+  describe("displays ledger entries", () => {
+    test("returns empty entries array when fuda has no ledger entries", async () => {
+      const fuda = createFuda(db, {
+        title: "Task without entries",
+        description: "No ledger entries",
+      });
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.entries).toBeDefined();
+      expect(result.fuda!.entries).toEqual([]);
+    });
+
+    test("returns entries array with all ledger entries for the fuda", async () => {
+      const fuda = createFuda(db, {
+        title: "Task with entries",
+        description: "Has ledger entries",
+      });
+
+      addEntry(db, {
+        fudaId: fuda.id,
+        entryType: EntryType.HANDOFF,
+        content: "Handoff note",
+        spiritId: "agent-1",
+      });
+      addEntry(db, {
+        fudaId: fuda.id,
+        entryType: EntryType.LEARNING,
+        content: "Learning note",
+        spiritId: "agent-2",
+      });
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.entries).toHaveLength(2);
+      expect(result.fuda!.entries[0].content).toBe("Handoff note");
+      expect(result.fuda!.entries[0].entryType).toBe(EntryType.HANDOFF);
+      expect(result.fuda!.entries[1].content).toBe("Learning note");
+      expect(result.fuda!.entries[1].entryType).toBe(EntryType.LEARNING);
+    });
+
+    test("entries include all fields: id, fudaId, entryType, content, spiritId, createdAt", async () => {
+      const fuda = createFuda(db, {
+        title: "Task with entry",
+        description: "Has ledger entry",
+      });
+
+      addEntry(db, {
+        fudaId: fuda.id,
+        entryType: EntryType.LEARNING,
+        content: "Full entry",
+        spiritId: "agent-123",
+      });
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      const entry = result.fuda!.entries[0];
+      expect(entry.id).toBeDefined();
+      expect(entry.id).toMatch(/^sk-/);
+      expect(entry.fudaId).toBe(fuda.id);
+      expect(entry.entryType).toBe(EntryType.LEARNING);
+      expect(entry.content).toBe("Full entry");
+      expect(entry.spiritId).toBe("agent-123");
+      expect(entry.createdAt).toBeDefined();
+    });
+
+    test("entries without spiritId have null spiritId", async () => {
+      const fuda = createFuda(db, {
+        title: "Task with entry",
+        description: "Has ledger entry",
+      });
+
+      addEntry(db, {
+        fudaId: fuda.id,
+        entryType: EntryType.LEARNING,
+        content: "Entry without spirit",
+      });
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.entries[0].spiritId).toBeNull();
+    });
+  });
+
+  describe("displays predecessor handoffs", () => {
+    test("returns empty predecessorHandoffs array when no blocking dependencies", async () => {
+      const fuda = createFuda(db, {
+        title: "Standalone task",
+        description: "No dependencies",
+      });
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.predecessorHandoffs).toBeDefined();
+      expect(result.fuda!.predecessorHandoffs).toEqual([]);
+    });
+
+    test("predecessorHandoffs contains handoffs from blocking dependency fudas", async () => {
+      // Create predecessor and mark as done
+      const predecessor = createFuda(db, {
+        title: "Predecessor task",
+        description: "Blocks the main task",
+      });
+      updateFudaStatus(db, predecessor.id, FudaStatus.DONE);
+
+      addEntry(db, {
+        fudaId: predecessor.id,
+        entryType: EntryType.HANDOFF,
+        content: "First handoff note",
+        spiritId: "agent-1",
+      });
+      addEntry(db, {
+        fudaId: predecessor.id,
+        entryType: EntryType.HANDOFF,
+        content: "Second handoff note",
+        spiritId: "agent-2",
+      });
+
+      // Create current fuda that depends on predecessor
+      const fuda = createFuda(db, {
+        title: "Main task",
+        description: "Has blocking dependency",
+      });
+      addFudaDependency(db, fuda.id, predecessor.id, DependencyType.BLOCKS);
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.predecessorHandoffs).toHaveLength(2);
+      expect(result.fuda!.predecessorHandoffs[0].content).toBe("First handoff note");
+      expect(result.fuda!.predecessorHandoffs[1].content).toBe("Second handoff note");
+    });
+
+    test("predecessorHandoffs includes sourceFudaId", async () => {
+      const predecessor = createFuda(db, {
+        title: "Predecessor task",
+        description: "Blocks the main task",
+      });
+      updateFudaStatus(db, predecessor.id, FudaStatus.DONE);
+
+      addEntry(db, {
+        fudaId: predecessor.id,
+        entryType: EntryType.HANDOFF,
+        content: "Handoff with source",
+        spiritId: "agent-1",
+      });
+
+      const fuda = createFuda(db, {
+        title: "Main task",
+        description: "Has blocking dependency",
+      });
+      addFudaDependency(db, fuda.id, predecessor.id, DependencyType.BLOCKS);
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.predecessorHandoffs[0].sourceFudaId).toBe(predecessor.id);
+    });
+
+    test("predecessorHandoffs includes sourceFudaTitle", async () => {
+      const predecessor = createFuda(db, {
+        title: "My Predecessor Title",
+        description: "Blocks the main task",
+      });
+      updateFudaStatus(db, predecessor.id, FudaStatus.DONE);
+
+      addEntry(db, {
+        fudaId: predecessor.id,
+        entryType: EntryType.HANDOFF,
+        content: "Handoff with title",
+        spiritId: "agent-1",
+      });
+
+      const fuda = createFuda(db, {
+        title: "Main task",
+        description: "Has blocking dependency",
+      });
+      addFudaDependency(db, fuda.id, predecessor.id, DependencyType.BLOCKS);
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.predecessorHandoffs[0].sourceFudaTitle).toBe("My Predecessor Title");
+    });
+
+    test("predecessorHandoffs from parent-child dependency", async () => {
+      const parent = createFuda(db, {
+        title: "Parent task",
+        description: "Parent of current task",
+      });
+      updateFudaStatus(db, parent.id, FudaStatus.DONE);
+
+      addEntry(db, {
+        fudaId: parent.id,
+        entryType: EntryType.HANDOFF,
+        content: "Handoff from parent",
+        spiritId: "agent-1",
+      });
+
+      const fuda = createFuda(db, {
+        title: "Child task",
+        description: "Child of parent",
+      });
+      addFudaDependency(db, fuda.id, parent.id, DependencyType.PARENT_CHILD);
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.predecessorHandoffs).toHaveLength(1);
+      expect(result.fuda!.predecessorHandoffs[0].content).toBe("Handoff from parent");
+    });
+
+    test("multiple predecessors contribute handoffs", async () => {
+      const predecessor1 = createFuda(db, {
+        title: "First predecessor",
+        description: "First blocking task",
+      });
+      updateFudaStatus(db, predecessor1.id, FudaStatus.DONE);
+      addEntry(db, {
+        fudaId: predecessor1.id,
+        entryType: EntryType.HANDOFF,
+        content: "Handoff from first",
+        spiritId: "agent-1",
+      });
+
+      const predecessor2 = createFuda(db, {
+        title: "Second predecessor",
+        description: "Second blocking task",
+      });
+      updateFudaStatus(db, predecessor2.id, FudaStatus.DONE);
+      addEntry(db, {
+        fudaId: predecessor2.id,
+        entryType: EntryType.HANDOFF,
+        content: "Handoff from second",
+        spiritId: "agent-2",
+      });
+
+      const fuda = createFuda(db, {
+        title: "Main task",
+        description: "Has multiple dependencies",
+      });
+      addFudaDependency(db, fuda.id, predecessor1.id, DependencyType.BLOCKS);
+      addFudaDependency(db, fuda.id, predecessor2.id, DependencyType.BLOCKS);
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.predecessorHandoffs).toHaveLength(2);
+      const contents = result.fuda!.predecessorHandoffs.map((h) => h.content);
+      expect(contents).toContain("Handoff from first");
+      expect(contents).toContain("Handoff from second");
+    });
+
+    test("related dependencies do not contribute to predecessorHandoffs", async () => {
+      const relatedFuda = createFuda(db, {
+        title: "Related task",
+        description: "Related but not blocking",
+      });
+      updateFudaStatus(db, relatedFuda.id, FudaStatus.DONE);
+      addEntry(db, {
+        fudaId: relatedFuda.id,
+        entryType: EntryType.HANDOFF,
+        content: "Handoff from related",
+        spiritId: "agent-1",
+      });
+
+      const fuda = createFuda(db, {
+        title: "Main task",
+        description: "Has related dependency",
+      });
+      addFudaDependency(db, fuda.id, relatedFuda.id, DependencyType.RELATED);
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.predecessorHandoffs).toEqual([]);
+    });
+
+    test("discovered-from dependencies do not contribute to predecessorHandoffs", async () => {
+      const sourceFuda = createFuda(db, {
+        title: "Source task",
+        description: "Discovered from",
+      });
+      updateFudaStatus(db, sourceFuda.id, FudaStatus.DONE);
+      addEntry(db, {
+        fudaId: sourceFuda.id,
+        entryType: EntryType.HANDOFF,
+        content: "Handoff from source",
+        spiritId: "agent-1",
+      });
+
+      const fuda = createFuda(db, {
+        title: "Discovered task",
+        description: "Discovered from source",
+      });
+      addFudaDependency(db, fuda.id, sourceFuda.id, DependencyType.DISCOVERED_FROM);
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.predecessorHandoffs).toEqual([]);
+    });
+
+    test("only handoff entries contribute to predecessorHandoffs, not learnings", async () => {
+      const predecessor = createFuda(db, {
+        title: "Predecessor task",
+        description: "Blocks the main task",
+      });
+      updateFudaStatus(db, predecessor.id, FudaStatus.DONE);
+
+      addEntry(db, {
+        fudaId: predecessor.id,
+        entryType: EntryType.HANDOFF,
+        content: "Handoff entry",
+        spiritId: "agent-1",
+      });
+      addEntry(db, {
+        fudaId: predecessor.id,
+        entryType: EntryType.LEARNING,
+        content: "Learning entry",
+        spiritId: "agent-2",
+      });
+
+      const fuda = createFuda(db, {
+        title: "Main task",
+        description: "Has blocking dependency",
+      });
+      addFudaDependency(db, fuda.id, predecessor.id, DependencyType.BLOCKS);
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.predecessorHandoffs).toHaveLength(1);
+      expect(result.fuda!.predecessorHandoffs[0].content).toBe("Handoff entry");
+    });
+  });
+
+  describe("JSON output includes ledger structure", () => {
+    test("JSON output includes entries array", async () => {
+      const fuda = createFuda(db, {
+        title: "Task with entry",
+        description: "Has ledger entry",
+      });
+      addEntry(db, {
+        fudaId: fuda.id,
+        entryType: EntryType.LEARNING,
+        content: "Learning note",
+      });
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+      const json = JSON.stringify(result);
+      const parsed = JSON.parse(json);
+
+      expect(parsed.fuda.entries).toBeDefined();
+      expect(Array.isArray(parsed.fuda.entries)).toBe(true);
+      expect(parsed.fuda.entries).toHaveLength(1);
+      expect(parsed.fuda.entries[0].content).toBe("Learning note");
+    });
+
+    test("JSON output includes predecessorHandoffs array", async () => {
+      const predecessor = createFuda(db, {
+        title: "Predecessor",
+        description: "Blocking task",
+      });
+      updateFudaStatus(db, predecessor.id, FudaStatus.DONE);
+      addEntry(db, {
+        fudaId: predecessor.id,
+        entryType: EntryType.HANDOFF,
+        content: "Predecessor handoff",
+      });
+
+      const fuda = createFuda(db, {
+        title: "Main task",
+        description: "Blocked by predecessor",
+      });
+      addFudaDependency(db, fuda.id, predecessor.id, DependencyType.BLOCKS);
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+      const json = JSON.stringify(result);
+      const parsed = JSON.parse(json);
+
+      expect(parsed.fuda.predecessorHandoffs).toBeDefined();
+      expect(Array.isArray(parsed.fuda.predecessorHandoffs)).toBe(true);
+      expect(parsed.fuda.predecessorHandoffs).toHaveLength(1);
+      expect(parsed.fuda.predecessorHandoffs[0].content).toBe("Predecessor handoff");
+      expect(parsed.fuda.predecessorHandoffs[0].sourceFudaId).toBe(predecessor.id);
+      expect(parsed.fuda.predecessorHandoffs[0].sourceFudaTitle).toBe("Predecessor");
+    });
+
+    test("JSON output includes full ledger entry structure", async () => {
+      const fuda = createFuda(db, {
+        title: "Task with entry",
+        description: "Has ledger entry",
+      });
+      addEntry(db, {
+        fudaId: fuda.id,
+        entryType: EntryType.HANDOFF,
+        content: "Complete entry",
+        spiritId: "spirit-abc",
+      });
+
+      const result = await runShow({ id: fuda.id, projectRoot: testDir });
+      const json = JSON.stringify(result);
+      const parsed = JSON.parse(json);
+
+      const entry = parsed.fuda.entries[0];
+      expect(entry).toHaveProperty("id");
+      expect(entry).toHaveProperty("fudaId");
+      expect(entry).toHaveProperty("entryType");
+      expect(entry).toHaveProperty("content");
+      expect(entry).toHaveProperty("spiritId");
+      expect(entry).toHaveProperty("createdAt");
     });
   });
 });
