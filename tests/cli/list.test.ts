@@ -353,6 +353,82 @@ describe("list command", () => {
     });
   });
 
+  describe("PRD display in output", () => {
+    test("fuda with prdId includes prdId in result", async () => {
+      createFuda(db, {
+        title: "Task with PRD",
+        description: "This task has a PRD reference",
+        prdId: "2025-01-09_my-feature",
+      });
+
+      const result = await runList({ projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fudas).toHaveLength(1);
+      expect(result.fudas![0].prdId).toBe("2025-01-09_my-feature");
+    });
+
+    test("fuda without prdId has null prdId in result", async () => {
+      createFuda(db, {
+        title: "Task without PRD",
+        description: "This task has no PRD reference",
+      });
+
+      const result = await runList({ projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fudas).toHaveLength(1);
+      expect(result.fudas![0].prdId).toBeNull();
+    });
+
+    test("mixed fuda show correct prdId values", async () => {
+      createFuda(db, {
+        title: "Task with PRD",
+        description: "Has PRD",
+        prdId: "2025-01-09_feature-a",
+      });
+      createFuda(db, {
+        title: "Task without PRD",
+        description: "No PRD",
+      });
+      createFuda(db, {
+        title: "Another task with PRD",
+        description: "Has different PRD",
+        prdId: "2025-01-10_feature-b",
+      });
+
+      const result = await runList({ projectRoot: testDir });
+
+      expect(result.success).toBe(true);
+      expect(result.fudas).toHaveLength(3);
+
+      const withPrd = result.fudas!.filter((f) => f.prdId !== null);
+      const withoutPrd = result.fudas!.filter((f) => f.prdId === null);
+
+      expect(withPrd).toHaveLength(2);
+      expect(withoutPrd).toHaveLength(1);
+
+      const prdIds = withPrd.map((f) => f.prdId);
+      expect(prdIds).toContain("2025-01-09_feature-a");
+      expect(prdIds).toContain("2025-01-10_feature-b");
+    });
+
+    test("prdId field is present in JSON output", async () => {
+      createFuda(db, {
+        title: "Task with PRD",
+        description: "Test description",
+        prdId: "2025-01-09_test-prd",
+      });
+
+      const result = await runList({ projectRoot: testDir });
+      const json = JSON.stringify(result);
+      const parsed = JSON.parse(json);
+
+      expect(parsed.fudas[0]).toHaveProperty("prdId");
+      expect(parsed.fudas[0].prdId).toBe("2025-01-09_test-prd");
+    });
+  });
+
   describe("limit option", () => {
     test("respects limit parameter", async () => {
       createFuda(db, { title: "Task 1", description: "Desc 1", priority: 3 });
