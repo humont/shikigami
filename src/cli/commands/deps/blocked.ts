@@ -62,7 +62,6 @@ export async function runDepsBlocked(options: DepsBlockedOptions): Promise<DepsB
       if (depFuda && depFuda.status !== FudaStatus.DONE) {
         blocking.push({
           id: depFuda.id,
-          displayId: depFuda.displayId,
           title: depFuda.title,
           status: depFuda.status,
           type: dep.type,

@@ -10,9 +10,7 @@ import { runShow } from "../../src/cli/commands/show";
 import { runList } from "../../src/cli/commands/list";
 import type { Fuda } from "../../src/types";
 
-// These tests verify display_id removal. They are skipped until the implementation
-// task (sk-suca) is complete. Remove .skip when implementing the removal.
-describe.skip("displayId removal", () => {
+describe("displayId removal", () => {
   describe("Fuda type", () => {
     test("Fuda type should not have displayId property", () => {
       // Type-level check: if displayId exists on Fuda, this test documents that it should be removed

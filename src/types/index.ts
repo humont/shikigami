@@ -28,7 +28,6 @@ export type SpiritType = (typeof SpiritType)[keyof typeof SpiritType];
 
 export interface Fuda {
   id: string;
-  displayId: string | null;
   prdId: string | null;
   title: string;
   description: string;

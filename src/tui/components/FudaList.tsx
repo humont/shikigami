@@ -67,12 +67,11 @@ export function FudaList({ fudas, selectedIndex, onSelect, maxHeight }: FudaList
       {visibleFudas.map((fuda, visibleIndex) => {
         const actualIndex = scrollOffset + visibleIndex;
         const isSelected = actualIndex === selectedIndex;
-        const displayId = fuda.displayId || fuda.id;
 
         return (
           <Box key={fuda.id} gap={1}>
             <Text>{isSelected ? ">" : " "}</Text>
-            <Text dimColor>{displayId}</Text>
+            <Text dimColor>{fuda.id}</Text>
             <Text color={getStatusColor(fuda.status)}>{fuda.status.padEnd(11)}</Text>
             <Text dimColor>p{fuda.priority}</Text>
             <Text bold={isSelected}>{fuda.title}</Text>

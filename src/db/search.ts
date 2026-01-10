@@ -9,7 +9,6 @@ export interface SearchAllResult {
 
 interface FudaRow {
   id: string;
-  display_id: string | null;
   prd_id: string | null;
   title: string;
   description: string;
@@ -40,7 +39,6 @@ interface LedgerRow {
 function rowToFuda(row: FudaRow): Fuda {
   return {
     id: row.id,
-    displayId: row.display_id,
     prdId: row.prd_id,
     title: row.title,
     description: row.description,

@@ -52,7 +52,6 @@ export function FudaDetailsContent({ fuda }: FudaDetailsContentProps) {
 
       <Box flexDirection="column" gap={0}>
         <Field label="ID" value={fuda.id} />
-        {fuda.displayId && <Field label="Display ID" value={fuda.displayId} />}
         {fuda.prdId && <Field label="PRD ID" value={fuda.prdId} />}
         <Box>
           <Text dimColor>Status: </Text>

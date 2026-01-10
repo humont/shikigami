@@ -7,7 +7,6 @@ import {
   SpiritType,
 } from "../types";
 import { generateId } from "../utils/id";
-import { generateDisplayId } from "../utils/display-id";
 import { logAuditEntry, AuditOperation } from "./audit";
 
 export interface ClaimResult {
@@ -17,7 +16,6 @@ export interface ClaimResult {
 
 interface FudaRow {
   id: string;
-  display_id: string | null;
   prd_id: string | null;
   title: string;
   description: string;
@@ -39,7 +37,6 @@ interface FudaRow {
 function rowToFuda(row: FudaRow): Fuda {
   return {
     id: row.id,
-    displayId: row.display_id,
     prdId: row.prd_id,
     title: row.title,
     description: row.description,
@@ -64,46 +61,17 @@ function getExistingIds(db: Database): Set<string> {
   return new Set(rows.map((r) => r.id));
 }
 
-function getSiblingCount(db: Database, prdId: string, parentFudaId?: string): number {
-  if (parentFudaId) {
-    const result = db
-      .query("SELECT COUNT(*) as count FROM fuda WHERE parent_fuda_id = ? AND deleted_at IS NULL")
-      .get(parentFudaId) as { count: number };
-    return result.count;
-  }
-  const result = db
-    .query("SELECT COUNT(*) as count FROM fuda WHERE prd_id = ? AND parent_fuda_id IS NULL AND deleted_at IS NULL")
-    .get(prdId) as { count: number };
-  return result.count;
-}
-
-function getParentDisplayId(db: Database, parentFudaId: string): string | undefined {
-  const row = db.query("SELECT display_id FROM fuda WHERE id = ?").get(parentFudaId) as { display_id: string | null } | null;
-  return row?.display_id ?? undefined;
-}
-
 export function createFuda(db: Database, input: CreateFudaInput, actor?: string): Fuda {
   const existingIds = getExistingIds(db);
   const id = generateId(existingIds);
-
-  let displayId: string | null = null;
-  if (input.prdId) {
-    const siblingCount = getSiblingCount(db, input.prdId, input.parentFudaId);
-    const parentDisplayId = input.parentFudaId ? getParentDisplayId(db, input.parentFudaId) : undefined;
-    displayId = generateDisplayId({
-      prdId: input.prdId,
-      parentDisplayId,
-      siblingCount,
-    });
-  }
 
   const spiritType = input.spiritType ?? SpiritType.SHIKIGAMI;
   const priority = input.priority ?? 0;
 
   db.run(
-    `INSERT INTO fuda (id, display_id, prd_id, title, description, status, spirit_type, priority, parent_fuda_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, displayId, input.prdId ?? null, input.title, input.description, FudaStatus.BLOCKED, spiritType, priority, input.parentFudaId ?? null]
+    `INSERT INTO fuda (id, prd_id, title, description, status, spirit_type, priority, parent_fuda_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, input.prdId ?? null, input.title, input.description, FudaStatus.BLOCKED, spiritType, priority, input.parentFudaId ?? null]
   );
 
   logAuditEntry(db, {
@@ -125,7 +93,7 @@ export function findFudaByPrefix(db: Database, prefix: string, includeDeleted = 
   const whereClause = includeDeleted ? "" : " AND deleted_at IS NULL";
 
   // Try exact match first
-  let row = db.query(`SELECT * FROM fuda WHERE (id = ? OR display_id = ?)${whereClause}`).get(prefix, prefix) as FudaRow | null;
+  let row = db.query(`SELECT * FROM fuda WHERE id = ?${whereClause}`).get(prefix) as FudaRow | null;
   if (row) {
     return rowToFuda(row);
   }
@@ -133,8 +101,8 @@ export function findFudaByPrefix(db: Database, prefix: string, includeDeleted = 
   // Try prefix match on id (with sk- prefix)
   const idPrefix = prefix.startsWith("sk-") ? prefix : `sk-${prefix}`;
   const rows = db
-    .query(`SELECT * FROM fuda WHERE (id LIKE ? OR display_id LIKE ?)${whereClause}`)
-    .all(`${idPrefix}%`, `${prefix}%`) as FudaRow[];
+    .query(`SELECT * FROM fuda WHERE id LIKE ?${whereClause}`)
+    .all(`${idPrefix}%`) as FudaRow[];
 
   if (rows.length === 1) {
     return rowToFuda(rows[0]);
@@ -149,8 +117,8 @@ export function findFudasByPrefix(db: Database, prefix: string, includeDeleted =
   const idPrefix = prefix.startsWith("sk-") ? prefix : `sk-${prefix}`;
 
   const rows = db
-    .query(`SELECT * FROM fuda WHERE (id LIKE ? OR display_id LIKE ?)${whereClause}`)
-    .all(`${idPrefix}%`, `${prefix}%`) as FudaRow[];
+    .query(`SELECT * FROM fuda WHERE id LIKE ?${whereClause}`)
+    .all(`${idPrefix}%`) as FudaRow[];
 
   return rows.map(rowToFuda);
 }
@@ -190,7 +158,7 @@ export function getReadyFuda(db: Database, limit?: number): Fuda[] {
 
 export function getFudaByPrd(db: Database, prdId: string): Fuda[] {
   const rows = db
-    .query("SELECT * FROM fuda WHERE prd_id = ? AND deleted_at IS NULL ORDER BY display_id ASC")
+    .query("SELECT * FROM fuda WHERE prd_id = ? AND deleted_at IS NULL ORDER BY created_at ASC")
     .all(prdId) as FudaRow[];
   return rows.map(rowToFuda);
 }
