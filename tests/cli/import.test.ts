@@ -173,7 +173,7 @@ describe("import command", () => {
       const stdinContent = JSON.stringify({
         title: "Full fuda",
         description: "Has all fields",
-        spiritType: "tengu",
+        spiritType: "review",
         priority: 10,
         prdId: "PRD-001",
       });
@@ -187,7 +187,7 @@ describe("import command", () => {
       expect(result.count).toBe(1);
 
       const fuda = getFuda(db, result.imported![0]);
-      expect(fuda!.spiritType).toBe("tengu");
+      expect(fuda!.spiritType).toBe("review");
       expect(fuda!.priority).toBe(10);
       expect(fuda!.prdId).toBe("PRD-001");
     });

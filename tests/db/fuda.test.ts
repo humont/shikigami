@@ -39,7 +39,7 @@ describe("fuda CRUD", () => {
       expect(fuda.title).toBe("Test Fuda");
       expect(fuda.description).toBe("A test fuda description");
       expect(fuda.status).toBe(FudaStatus.BLOCKED);
-      expect(fuda.spiritType).toBe(SpiritType.SHIKIGAMI);
+      expect(fuda.spiritType).toBe(SpiritType.CODE);
       expect(fuda.priority).toBe(0);
     });
 
@@ -47,11 +47,11 @@ describe("fuda CRUD", () => {
       const fuda = createFuda(db, {
         title: "Test",
         description: "Desc",
-        spiritType: SpiritType.TENGU,
+        spiritType: SpiritType.REVIEW,
         priority: 10,
       });
 
-      expect(fuda.spiritType).toBe(SpiritType.TENGU);
+      expect(fuda.spiritType).toBe(SpiritType.REVIEW);
       expect(fuda.priority).toBe(10);
     });
 

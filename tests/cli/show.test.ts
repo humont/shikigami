@@ -46,7 +46,7 @@ describe("show command", () => {
         title: "Complete task",
         description: "Full description",
         priority: 7,
-        spiritType: "tengu",
+        spiritType: "review",
       });
 
       const result = await runShow({ id: fuda.id, projectRoot: testDir });
@@ -55,7 +55,7 @@ describe("show command", () => {
       expect(result.fuda!.title).toBe("Complete task");
       expect(result.fuda!.description).toBe("Full description");
       expect(result.fuda!.priority).toBe(7);
-      expect(result.fuda!.spiritType).toBe("tengu");
+      expect(result.fuda!.spiritType).toBe("review");
       expect(result.fuda!.status).toBeDefined();
       expect(result.fuda!.createdAt).toBeDefined();
       expect(result.fuda!.updatedAt).toBeDefined();

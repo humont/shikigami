@@ -26,9 +26,11 @@ describe("agent-guide command", () => {
     expect(result.content).toContain("Core Concepts");
     expect(result.content).toContain("Fuda");
     expect(result.content).toContain("Spirit Types");
-    expect(result.content).toContain("shikigami");
-    expect(result.content).toContain("tengu");
-    expect(result.content).toContain("kitsune");
+    expect(result.content).toContain("prd");
+    expect(result.content).toContain("task");
+    expect(result.content).toContain("test");
+    expect(result.content).toContain("code");
+    expect(result.content).toContain("review");
   });
 
   test("includes workflow steps", async () => {
@@ -106,16 +108,11 @@ describe("agent-guide command", () => {
 
     // Core concepts
     expect(structured.coreConcepts.fuda).toBeDefined();
-    // New spirit types
     expect(structured.coreConcepts.spiritTypes).toContain("prd");
     expect(structured.coreConcepts.spiritTypes).toContain("task");
     expect(structured.coreConcepts.spiritTypes).toContain("test");
     expect(structured.coreConcepts.spiritTypes).toContain("code");
     expect(structured.coreConcepts.spiritTypes).toContain("review");
-    // Legacy spirit types (for backwards compatibility)
-    expect(structured.coreConcepts.spiritTypes).toContain("shikigami");
-    expect(structured.coreConcepts.spiritTypes).toContain("tengu");
-    expect(structured.coreConcepts.spiritTypes).toContain("kitsune");
     expect(structured.coreConcepts.dependencyTypes).toContain("blocks");
 
     // Workflow

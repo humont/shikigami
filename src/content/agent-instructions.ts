@@ -39,11 +39,6 @@ Spirit types categorize AI agents by their specialized capabilities:
 - **code**: Implementation spirits for writing and refactoring code
 - **review**: Review spirits for quality gates and code review
 
-Legacy types (still supported for backwards compatibility):
-- **shikigami**: General-purpose (equivalent to code)
-- **tengu**: Review-focused (equivalent to review)
-- **kitsune**: Testing-focused (equivalent to test)
-
 ### Dependencies
 Fuda can have dependencies that control execution order:
 - **blocks**: Task A must complete before task B can start
@@ -109,7 +104,7 @@ shiki add \\
   -t "Implement feature X" \\
   -d "Detailed description of what needs to be done" \\
   --priority 5 \\
-  --spirit-type shikigami \\
+  --spirit-type code \\
   --depends-on sk-xyz123 \\
   --json
 \`\`\`
@@ -237,7 +232,7 @@ export function getStructuredContent(): AgentGuideStructured {
   return {
     coreConcepts: {
       fuda: 'A task unit containing title, description, status, priority, and spiritType',
-      spiritTypes: ['prd', 'task', 'test', 'code', 'review', 'shikigami', 'tengu', 'kitsune'],
+      spiritTypes: ['prd', 'task', 'test', 'code', 'review'],
       dependencyTypes: ['blocks', 'parent-child', 'related', 'discovered-from'],
       statuses: [
         'blocked',

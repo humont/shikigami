@@ -197,7 +197,7 @@ describe("migrations", () => {
       // Insert test data with display_id
       db.run(`
         INSERT INTO fuda (id, display_id, title, description, status, spirit_type, priority)
-        VALUES ('test-id-1', 'proj.1', 'Test Title', 'Test Description', 'ready', 'shikigami', 0)
+        VALUES ('test-id-1', 'proj.1', 'Test Title', 'Test Description', 'ready', 'code', 0)
       `);
 
       // Run the display_id removal migration

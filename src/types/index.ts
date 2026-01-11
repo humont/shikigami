@@ -19,16 +19,11 @@ export const DependencyType = {
 export type DependencyType = (typeof DependencyType)[keyof typeof DependencyType];
 
 export const SpiritType = {
-  // New spirit types for specialized roles
   PRD: "prd",
   TASK: "task",
   TEST: "test",
   CODE: "code",
   REVIEW: "review",
-  // Legacy aliases (for backwards compatibility)
-  SHIKIGAMI: "shikigami", // legacy: general-purpose → now use CODE
-  TENGU: "tengu", // legacy: review → now use REVIEW
-  KITSUNE: "kitsune", // legacy: testing → now use TEST
 } as const;
 
 export type SpiritType = (typeof SpiritType)[keyof typeof SpiritType];

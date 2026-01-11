@@ -65,7 +65,7 @@ export function createFuda(db: Database, input: CreateFudaInput, actor?: string)
   const existingIds = getExistingIds(db);
   const id = generateId(existingIds);
 
-  const spiritType = input.spiritType ?? SpiritType.SHIKIGAMI;
+  const spiritType = input.spiritType ?? SpiritType.CODE;
   const priority = input.priority ?? 0;
 
   db.run(

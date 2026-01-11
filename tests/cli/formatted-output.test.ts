@@ -231,7 +231,7 @@ describe("formatted output integration tests", () => {
 
     test("displays all fuda fields", async () => {
       const addResult = await runCli(
-        ["add", "-t", "Complete Task", "-d", "Full description", "-p", "7", "-s", "tengu"],
+        ["add", "-t", "Complete Task", "-d", "Full description", "-p", "7", "-s", "review"],
         { cwd: testDir }
       );
       const id = addResult.stdout.trim().split(" ").pop()!;
@@ -243,7 +243,7 @@ describe("formatted output integration tests", () => {
       expect(result.stdout).toContain("Title: Complete Task");
       expect(result.stdout).toContain("Description: Full description");
       expect(result.stdout).toContain("Status: ready"); // Fuda without deps start as ready
-      expect(result.stdout).toContain("Spirit Type: tengu");
+      expect(result.stdout).toContain("Spirit Type: review");
       expect(result.stdout).toContain("Priority: 7");
       expect(result.stdout).toContain("Created:");
       expect(result.stdout).toContain("Updated:");

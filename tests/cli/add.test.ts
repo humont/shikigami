@@ -68,7 +68,7 @@ describe("add command", () => {
       expect(result.fuda!.status).toBe(FudaStatus.BLOCKED);
     });
 
-    test("creates fuda with default spirit type of shikigami", async () => {
+    test("creates fuda with default spirit type of code", async () => {
       const result = await runAdd({
         title: "New task",
         description: "New description",
@@ -76,7 +76,7 @@ describe("add command", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.fuda!.spiritType).toBe(SpiritType.SHIKIGAMI);
+      expect(result.fuda!.spiritType).toBe(SpiritType.CODE);
     });
 
     test("creates fuda with generated id", async () => {
@@ -129,40 +129,64 @@ describe("add command", () => {
   });
 
   describe("creation with spirit type", () => {
-    test("creates fuda with shikigami spirit type", async () => {
+    test("creates fuda with code spirit type", async () => {
       const result = await runAdd({
         title: "General task",
         description: "General work",
-        spiritType: SpiritType.SHIKIGAMI,
+        spiritType: SpiritType.CODE,
         projectRoot: testDir,
       });
 
       expect(result.success).toBe(true);
-      expect(result.fuda!.spiritType).toBe(SpiritType.SHIKIGAMI);
+      expect(result.fuda!.spiritType).toBe(SpiritType.CODE);
     });
 
-    test("creates fuda with tengu spirit type", async () => {
+    test("creates fuda with review spirit type", async () => {
       const result = await runAdd({
         title: "Review task",
         description: "Code review",
-        spiritType: SpiritType.TENGU,
+        spiritType: SpiritType.REVIEW,
         projectRoot: testDir,
       });
 
       expect(result.success).toBe(true);
-      expect(result.fuda!.spiritType).toBe(SpiritType.TENGU);
+      expect(result.fuda!.spiritType).toBe(SpiritType.REVIEW);
     });
 
-    test("creates fuda with kitsune spirit type", async () => {
+    test("creates fuda with test spirit type", async () => {
       const result = await runAdd({
         title: "Testing task",
         description: "Write tests",
-        spiritType: SpiritType.KITSUNE,
+        spiritType: SpiritType.TEST,
         projectRoot: testDir,
       });
 
       expect(result.success).toBe(true);
-      expect(result.fuda!.spiritType).toBe(SpiritType.KITSUNE);
+      expect(result.fuda!.spiritType).toBe(SpiritType.TEST);
+    });
+
+    test("creates fuda with prd spirit type", async () => {
+      const result = await runAdd({
+        title: "PRD task",
+        description: "Write requirements",
+        spiritType: SpiritType.PRD,
+        projectRoot: testDir,
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.spiritType).toBe(SpiritType.PRD);
+    });
+
+    test("creates fuda with task spirit type", async () => {
+      const result = await runAdd({
+        title: "Breakdown task",
+        description: "Break down PRD",
+        spiritType: SpiritType.TASK,
+        projectRoot: testDir,
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.fuda!.spiritType).toBe(SpiritType.TASK);
     });
   });
 
@@ -377,7 +401,7 @@ describe("add command", () => {
         title: "Complete task",
         description: "Full description",
         priority: 5,
-        spiritType: SpiritType.TENGU,
+        spiritType: SpiritType.REVIEW,
         projectRoot: testDir,
       });
 

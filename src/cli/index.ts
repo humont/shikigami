@@ -131,7 +131,7 @@ program
   .description("Create a new fuda")
   .requiredOption("-t, --title <title>", "Fuda title")
   .requiredOption("-d, --description <description>", "Fuda description")
-  .option("-s, --spirit-type <type>", "Spirit type (prd, task, test, code, review; legacy: shikigami, tengu, kitsune)", "shikigami")
+  .option("-s, --spirit-type <type>", "Spirit type (prd, task, test, code, review)", "code")
   .option("-p, --priority <number>", "Priority (higher = more important)", "0")
   .option("--depends-on <ids>", "Comma-separated IDs of dependencies")
   .option("--dep-type <type>", "Dependency type (blocks, parent-child, related, discovered-from)", "blocks")
