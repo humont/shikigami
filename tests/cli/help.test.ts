@@ -28,7 +28,6 @@ describe("CLI help output", () => {
         "agent-guide",
         "upgrade",
         "lore",
-        "tui",
       ];
 
       for (const cmd of commands) {
@@ -68,7 +67,6 @@ describe("CLI help output", () => {
         /agent-guide\s+.+/,
         /upgrade\s+.+/,
         /lore\s+.+/,
-        /tui\s+.+/,
       ];
 
       for (const pattern of commandPatterns) {

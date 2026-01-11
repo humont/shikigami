@@ -20,7 +20,6 @@ import { runSearch } from "./commands/search";
 import { runAgentGuide } from "./commands/agent-guide";
 import { runUpgrade } from "./commands/upgrade";
 import { runLore, runInteractiveLore, formatLoreList, formatLoreEntry } from "./commands/lore";
-import { runTui } from "./commands/tui";
 import { output, outputError } from "../utils/output";
 
 // ANSI color codes
@@ -759,19 +758,6 @@ program
       }
     } else {
       outputError(result.error!, isJson);
-      process.exit(1);
-    }
-  });
-
-// TUI command
-program
-  .command("tui")
-  .description("Launch the interactive TUI")
-  .action(async () => {
-    const result = await runTui();
-
-    if (!result.success) {
-      outputError(result.error!, program.opts().json);
       process.exit(1);
     }
   });

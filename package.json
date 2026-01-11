@@ -26,7 +26,6 @@
   "license": "MIT",
   "scripts": {
     "dev": "bun run src/cli/index.ts",
-    "tui": "bun run src/cli/index.ts tui",
     "build": "bun build src/cli/index.ts --outdir dist --target bun",
     "build:standalone": "bun build src/cli/index.ts --compile --outfile dist/shiki --external react-devtools-core",
     "build:linux-x64": "bun build src/cli/index.ts --compile --target=bun-linux-x64 --outfile dist/shiki-linux-x64 --external react-devtools-core",
