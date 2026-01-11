@@ -157,16 +157,78 @@ shiki add "refactor auth module to use dependency injection" --spirit code
 shiki add "optimize database queries in user service" --spirit code
 ```
 
+## Implementation
+
+### Agent Adapter
+
+Spirits are invoked via agent CLI adapters. Initial implementation targets Claude Code, with other agents (amp, codex, gemini) as future work.
+
+### Spirit Prompt Templates
+
+Store spirit prompts as markdown files:
+
+```
+.shikigami/spirits/
+├── prd.md
+├── task.md
+├── test.md
+├── code.md
+└── review.md
+```
+
+Each template defines the spirit's role, capabilities, and constraints.
+
+### Invocation Modes
+
+| Spirit | Mode | Claude CLI | Reason |
+|--------|------|------------|--------|
+| prd | interactive | `claude --system-prompt "..."` | Socratic dialog with human |
+| task | non-interactive | `claude -p --system-prompt "..."` | One-shot fuda generation |
+| test | interactive | `claude --system-prompt "..."` | Human approves test plan |
+| code | interactive | `claude --system-prompt "..."` | May need clarification |
+| review | interactive | `claude --system-prompt "..."` | Human approves findings |
+
+### Prompt Assembly
+
+When `shiki summon` or `shiki prd` commands run:
+
+1. Load spirit template from `.shikigami/spirits/<type>.md`
+2. Inject context:
+   - For fuda-based spirits: fuda title, description, dependencies, status
+   - For PRD spirits: PRD content (if continuing) or blank (if creating)
+3. Invoke claude with assembled prompt:
+   ```bash
+   # Interactive
+   claude --system-prompt "<assembled prompt>"
+
+   # Non-interactive
+   claude -p --system-prompt "<assembled prompt>" "<initial message>"
+   ```
+
+### Future: Other Agents
+
+The adapter pattern allows adding support for other agent CLIs:
+
+```bash
+shiki summon <fuda_id> --agent amp
+shiki summon <fuda_id> --agent codex
+```
+
+Each adapter translates the spirit prompt into the agent's expected format.
+
 ## Fuda
 
 - [ ] Update spirit type enum in types (prd, task, test, code, review)
-- [ ] Design spirit prompt schema (capabilities, constraints)
-- [ ] Implement `shiki prd create` command (PRD spirit dialog)
-- [ ] Implement `shiki prd continue <prd_id>` command
-- [ ] Implement `shiki prd plan <prd_id>` command (task spirit, one-shot)
-- [ ] Implement `shiki summon` command (take next ready fuda)
-- [ ] Implement `shiki summon <fuda_id>` command (work on specific fuda)
+- [ ] Create spirit prompt templates in `.shikigami/spirits/`
+  - [ ] prd.md - Socratic PRD dialog
+  - [ ] task.md - PRD to fuda breakdown
+  - [ ] test.md - Test planning with human approval
+  - [ ] code.md - Implementation/refactoring
+  - [ ] review.md - Quality gate with human approval
+- [ ] Implement Claude adapter (prompt assembly + CLI invocation)
+- [ ] Implement `shiki prd create` command (PRD spirit, interactive)
+- [ ] Implement `shiki prd continue <prd_id>` command (PRD spirit, interactive)
+- [ ] Implement `shiki prd plan <prd_id>` command (task spirit, non-interactive)
+- [ ] Implement `shiki summon` command (take next ready fuda, interactive)
+- [ ] Implement `shiki summon <fuda_id>` command (specific fuda, interactive)
 - [ ] Implement `--spirit` flag override for summon
-- [ ] Implement test spirit planning flow with human approval
-- [ ] Implement code spirit execution flow
-- [ ] Implement review spirit flow with human approval gate
