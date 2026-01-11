@@ -2,7 +2,8 @@
 node_modules/
 
 # Shikigami database (dogfooding)
-.shikigami/
+.shikigami/*
+!.shikigami/prds/
 
 # Build outputs
 dist/
