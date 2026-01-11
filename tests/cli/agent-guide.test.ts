@@ -106,6 +106,13 @@ describe("agent-guide command", () => {
 
     // Core concepts
     expect(structured.coreConcepts.fuda).toBeDefined();
+    // New spirit types
+    expect(structured.coreConcepts.spiritTypes).toContain("prd");
+    expect(structured.coreConcepts.spiritTypes).toContain("task");
+    expect(structured.coreConcepts.spiritTypes).toContain("test");
+    expect(structured.coreConcepts.spiritTypes).toContain("code");
+    expect(structured.coreConcepts.spiritTypes).toContain("review");
+    // Legacy spirit types (for backwards compatibility)
     expect(structured.coreConcepts.spiritTypes).toContain("shikigami");
     expect(structured.coreConcepts.spiritTypes).toContain("tengu");
     expect(structured.coreConcepts.spiritTypes).toContain("kitsune");

@@ -33,9 +33,16 @@ A **fuda** is a task unit containing:
 
 ### Spirit Types
 Spirit types categorize AI agents by their specialized capabilities:
-- **shikigami**: General-purpose spirits for standard development tasks
-- **tengu**: Review-focused spirits for code review and quality checks
-- **kitsune**: Testing-focused spirits for writing and running tests
+- **prd**: PRD spirits for requirement gathering and documentation
+- **task**: Task breakdown spirits for PRD-to-fuda conversion
+- **test**: Testing spirits for writing conformance tests
+- **code**: Implementation spirits for writing and refactoring code
+- **review**: Review spirits for quality gates and code review
+
+Legacy types (still supported for backwards compatibility):
+- **shikigami**: General-purpose (equivalent to code)
+- **tengu**: Review-focused (equivalent to review)
+- **kitsune**: Testing-focused (equivalent to test)
 
 ### Dependencies
 Fuda can have dependencies that control execution order:
@@ -230,7 +237,7 @@ export function getStructuredContent(): AgentGuideStructured {
   return {
     coreConcepts: {
       fuda: 'A task unit containing title, description, status, priority, and spiritType',
-      spiritTypes: ['shikigami', 'tengu', 'kitsune'],
+      spiritTypes: ['prd', 'task', 'test', 'code', 'review', 'shikigami', 'tengu', 'kitsune'],
       dependencyTypes: ['blocks', 'parent-child', 'related', 'discovered-from'],
       statuses: [
         'blocked',
