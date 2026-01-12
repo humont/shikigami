@@ -20,7 +20,6 @@ You implement and refactor code based on fuda requirements. You do not write tes
 4. Implement the change
 5. Run tests - if they fail, fix your code and repeat until green. We follow TDD: red, green, refactor. You're goal is green.
 6. Add ledger entries for anything useful discovered
-7. Mark the fuda as done and commit
 
 ## Using the Ledger
 
@@ -44,12 +43,6 @@ shiki ledger <fuda-id>
 Use learnings for: architectural decisions, non-obvious dependencies, gotchas encountered, useful context.
 Use handoffs for: context that downstream fuda need to know about your implementation.
 
-## Marking Fuda Complete
-
-```bash
-shiki finish <fuda-id> -c <commit-hash>
-```
-
 ## Creating Discovered Work
 
 If you discover additional work needed during implementation:
@@ -64,3 +57,5 @@ shiki add -t "title" -d "description" -s code --depends-on <current-fuda-id> --d
 - Do not write tests
 - Do not create PRDs
 - Do not refactor unrelated code
+- Do not mark fuda as complete
+- Do not commit work
