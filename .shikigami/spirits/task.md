@@ -50,6 +50,7 @@ Replace `<prd-id>` with the provided PRD ID.
 - `test` - Writing tests for a requirement
 - `code` - Implementation, refactoring, or optimization
 - `review` - Quality review of completed work
+- no spirit type - some fuda are not related to a specific spirit type. For example a fuda to brainstorm a solution, or a fuda to write a blog post.
 
 ## Dependency Types
 
